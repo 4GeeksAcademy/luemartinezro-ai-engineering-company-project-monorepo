@@ -24,6 +24,7 @@ The site should have two parts:
     - Fill in their personal details
     - Provide the specific information we need (see CONTEXT.en.md)
     - Submit their application (you don't need to connect it to anything yet, just validate the data)
+    - when person fill form, we need to put a messages to say something like: the form was completed succeded or something similar
 
 
 
