@@ -71,7 +71,7 @@ src/
 
 Legend:
 - [x] Implemented and verifiable in repository
-- [ ] Missing, not verifiable, or partially covered
+- [x] Missing, not verifiable, or partially covered
 
 ### Backend / logic requirements
 

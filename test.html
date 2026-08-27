@@ -55,7 +55,43 @@
     </section>
   </main>
 
-  <script>
+  <script type="module">
+    // ─────────────────────────────────────────────────────────────
+    // Import the REAL utility modules from the TypeScript project
+    // ─────────────────────────────────────────────────────────────
+    import {
+      US_CLINICS, UK_CLINICS, ALL_CLINICS, MEDICAL_SERVICES,
+      calculateAge, getClinicById, getPublicClinics,
+    } from './src/types/models.js';
+
+    import {
+      filterBy, filterByProperty, filterByValues,
+      sortBy, sortByMultiple,
+      groupBy, groupByEntries,
+      paginate, countBy, uniqueValues,
+    } from './src/utils/collections.js';
+
+    import {
+      linearSearch, linearSearchAll, linearSearchByProperty,
+      binarySearchNumber, binarySearchString, binarySearch,
+    } from './src/utils/search.js';
+
+    import {
+      countByCategory, summarizeNumeric, summarizeProperty,
+      min, max, minBy, maxBy,
+      sum, average, frequencyReport,
+    } from './src/utils/transformations.js';
+
+    import {
+      validatePatientEnquiry, validateName, validatePhone,
+      validateInsurance, validatePaediatricCare,
+      validateDateOfBirth, validateEmail, validateHealthConcern,
+      validateConsent, validatePatientId, checkEveningClinicAvailability,
+    } from './src/utils/validations.js';
+
+    // ─────────────────────────────────────────────────────────────
+    // UI Helpers
+    // ─────────────────────────────────────────────────────────────
     function setOutput(id, value) {
       const node = document.getElementById(id);
       node.textContent = JSON.stringify(value, null, 2);
@@ -69,114 +105,88 @@
         : 'mt-2 text-sm font-medium text-emerald-700';
     }
 
-    // Standalone dataset and utilities so this page always works, even without module loading.
-    const clinics = [
-      { id: 'austincentral', name: 'HealthCore Austin Central', city: 'Austin', state: 'TX', country: 'US' },
-      { id: 'austinnorth', name: 'HealthCore Austin North', city: 'Austin', state: 'TX', country: 'US' },
-      { id: 'sanantonio', name: 'HealthCore San Antonio', city: 'San Antonio', state: 'TX', country: 'US' },
-      { id: 'miami', name: 'HealthCore Miami', city: 'Miami', state: 'FL', country: 'US' },
-      { id: 'orlando', name: 'HealthCore Orlando', city: 'Orlando', state: 'FL', country: 'US' },
-      { id: 'atlanta', name: 'HealthCore Atlanta', city: 'Atlanta', state: 'GA', country: 'US' },
-      { id: 'londoncentral', name: 'HealthCore London Central', city: 'London', state: 'London', country: 'GB' },
-    ];
-
-    function filterByProperty(items, property, value) {
-      return items.filter((item) => item[property] === value);
-    }
-
-    function sortBy(items, property) {
-      return [...items].sort((a, b) => String(a[property]).localeCompare(String(b[property])));
-    }
-
-    function linearSearchByProperty(items, property, value) {
-      const index = items.findIndex((item) => item[property] === value);
-      return index >= 0 ? { found: true, item: items[index], index } : { found: false, index: -1 };
-    }
-
-    function binarySearchNumber(items, target) {
-      let left = 0;
-      let right = items.length - 1;
-      while (left <= right) {
-        const mid = Math.floor((left + right) / 2);
-        if (items[mid] === target) return { found: true, item: items[mid], index: mid };
-        if (items[mid] < target) left = mid + 1;
-        else right = mid - 1;
-      }
-      return { found: false, index: -1 };
-    }
-
-    function countByCategory(items, categorySelector) {
-      const map = new Map();
-      for (const item of items) {
-        const key = categorySelector(item);
-        map.set(key, (map.get(key) || 0) + 1);
-      }
-      return Array.from(map.entries()).map(([category, count]) => ({ category, count }));
-    }
-
-    function validateName(name, fieldName) {
-      const valid = !!name && name.trim().length >= 2;
-      return valid
-        ? { valid: true, field: fieldName }
-        : { valid: false, field: fieldName, message: 'First name must contain only letters and be at least 2 characters' };
-    }
-
-    function validateInsurance(hasInsurance, provider, memberId) {
-      const errors = [];
-      if (hasInsurance === 'Yes') {
-        if (!provider) {
-          errors.push({ valid: false, field: 'insurance_provider', message: 'Please enter your insurance provider name' });
-        }
-        if (!memberId) {
-          errors.push({ valid: false, field: 'insurance_member_id', message: 'Member ID must be between 6 and 20 alphanumeric characters' });
-        }
-      }
-      return errors;
-    }
-
+    // ─────────────────────────────────────────────────────────────
+    // SECTION 1: Filters & Sort
+    // ─────────────────────────────────────────────────────────────
     window.runUsClinics = function () {
-      const result = filterByProperty(clinics, 'country', 'US');
-      setOutput('out-filter', result.map((c) => ({ id: c.id, city: c.city, state: c.state })));
+      const result = filterByProperty(ALL_CLINICS, 'country', 'US');
+      setOutput('out-filter', {
+        title: `filterByProperty(clinics, 'country', 'US') → ${result.length} clinics`,
+        clinics: result.map((c) => ({ name: c.name, city: c.city, state: c.state, country: c.country })),
+      });
     };
 
     window.runSortByName = function () {
-      const result = sortBy(clinics, 'name', 'asc');
-      setOutput('out-filter', result.map((c) => c.name));
+      const result = sortBy(ALL_CLINICS, 'name', 'asc');
+      setOutput('out-filter', {
+        title: `sortBy(clinics, 'name', 'asc') → ${result.length} clinics sorted`,
+        names: result.map((c) => c.name),
+      });
     };
 
+    // ─────────────────────────────────────────────────────────────
+    // SECTION 2: Search
+    // ─────────────────────────────────────────────────────────────
     window.runLinearAustin = function () {
-      const result = linearSearchByProperty(clinics, 'city', 'Austin');
-      setOutput('out-search', result);
+      const result = linearSearchByProperty(ALL_CLINICS, 'city', 'Austin');
+      setOutput('out-search', {
+        title: `linearSearchByProperty(clinics, 'city', 'Austin') → found=${result.found}, index=${result.index}`,
+        item: result.item ? { name: result.item.name, city: result.item.city } : 'Not found',
+      });
     };
 
     window.runBinaryNumber = function () {
-      const data = [1, 3, 5, 7, 9];
-      setOutput('out-search', binarySearchNumber(data, 5));
+      const data = [1, 3, 5, 7, 9, 11, 13];
+      const result = binarySearchNumber(data, 5);
+      setOutput('out-search', {
+        title: `binarySearchNumber([${data}], 5) → found=${result.found}, index=${result.index}`,
+        result,
+      });
     };
 
+    // ─────────────────────────────────────────────────────────────
+    // SECTION 3: Transformations
+    // ─────────────────────────────────────────────────────────────
     window.runCountByState = function () {
-      const result = countByCategory(clinics, (c) => c.state);
-      setOutput('out-transform', result);
+      const result = countByCategory(ALL_CLINICS, (c) => c.state);
+      setOutput('out-transform', {
+        title: 'countByCategory(clinics, state)',
+        counts: result,
+      });
     };
 
+    // ─────────────────────────────────────────────────────────────
+    // SECTION 4: Business Validations
+    // ─────────────────────────────────────────────────────────────
     window.runValidateName = function () {
-      setOutput('out-validation', validateName('A', 'first_name'));
+      const result = validateName('A', 'first_name');
+      setOutput('out-validation', {
+        title: 'validateName("A", "first_name") — should fail (too short, not letters)',
+        result,
+      });
     };
 
     window.runValidateInsurance = function () {
-      setOutput('out-validation', validateInsurance('Yes', '', ''));
-    };
-
-    window.runAllTests = function () {
-      runUsClinics();
-      runLinearAustin();
-      runCountByState();
+      const result = validateInsurance('Yes', '', '');
       setOutput('out-validation', {
-        validateName: validateName('A', 'first_name'),
-        validateInsurance: validateInsurance('Yes', '', ''),
+        title: 'validateInsurance(Yes, "", "") — should show both errors',
+        errors: result,
       });
     };
-    setStatus('Standalone runtime loaded successfully.', false);
+
+    // ─────────────────────────────────────────────────────────────
+    // Run All
+    // ─────────────────────────────────────────────────────────────
+    window.runAllTests = function () {
+      runUsClinics();
+      setOutput('out-search', { title: 'Running: linearSearch + binarySearch...' });
+      runLinearAustin();
+      runCountByState();
+      runValidateName();
+    };
+
+    // Mark the page as ready
+    setStatus(`Loaded from src/utils/*.js — ${ALL_CLINICS.length} clinics, ${MEDICAL_SERVICES.length} services`, false);
     runAllTests();
   </script>
 </body>
