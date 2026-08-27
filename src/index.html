@@ -168,32 +168,32 @@
     import {
       US_CLINICS, UK_CLINICS, ALL_CLINICS, MEDICAL_SERVICES,
       calculateAge, getClinicById, getPublicClinics,
-    } from './types/models.ts';
+    } from './types/models.js';
 
     import {
       filterBy, filterByProperty, filterByValues,
       sortBy, sortByMultiple,
       groupBy, groupByEntries,
       paginate, countBy, uniqueValues,
-    } from './utils/collections.ts';
+    } from './utils/collections.js';
 
     import {
       linearSearch, linearSearchAll, linearSearchByProperty,
       binarySearchNumber, binarySearchString, binarySearch,
-    } from './utils/search.ts';
+    } from './utils/search.js';
 
     import {
       countByCategory, summarizeNumeric, summarizeProperty,
       min, max, minBy, maxBy,
       sum, average, frequencyReport,
-    } from './utils/transformations.ts';
+    } from './utils/transformations.js';
 
     import {
       validatePatientEnquiry, validateName, validatePhone,
       validateInsurance, validatePaediatricCare,
       validateDateOfBirth, validateEmail, validateHealthConcern,
       validateConsent, validatePatientId, checkEveningClinicAvailability,
-    } from './utils/validations.ts';
+    } from './utils/validations.js';
 
     // ─────────────────────────────────────────────────────────────
     // Expose to window for button handlers

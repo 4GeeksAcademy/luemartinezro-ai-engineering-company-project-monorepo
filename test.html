@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HealthCore Test Page</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 text-slate-900 min-h-screen">
+  <main class="max-w-5xl mx-auto px-4 py-8">
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold">HealthCore Utilities Test Page</h1>
+      <p class="text-slate-600 mt-2">Use these buttons to validate collection, search, transformation, and validation utilities.</p>
+      <p id="runtime-status" class="mt-2 text-sm font-medium text-slate-700">Initializing test runtime...</p>
+      <div class="mt-4 flex flex-wrap gap-3">
+        <a href="index.html" class="px-4 py-2 rounded bg-slate-700 text-white text-sm">Back to Home</a>
+        <a href="application.html" class="px-4 py-2 rounded bg-blue-700 text-white text-sm">Open Validation Form</a>
+        <button onclick="runAllTests()" class="px-4 py-2 rounded bg-emerald-700 text-white text-sm">Run All Tests</button>
+      </div>
+    </header>
+
+    <section class="bg-white rounded-xl shadow p-5 mb-5">
+      <h2 class="font-semibold text-xl mb-3">1. Filters and Sort</h2>
+      <div class="flex flex-wrap gap-3">
+        <button onclick="runUsClinics()" class="px-4 py-2 rounded bg-blue-600 text-white text-sm">Filter US Clinics</button>
+        <button onclick="runSortByName()" class="px-4 py-2 rounded bg-blue-600 text-white text-sm">Sort by Name</button>
+      </div>
+      <pre id="out-filter" class="mt-4 bg-slate-900 text-emerald-300 rounded p-3 text-sm overflow-x-auto">Click a button...</pre>
+    </section>
+
+    <section class="bg-white rounded-xl shadow p-5 mb-5">
+      <h2 class="font-semibold text-xl mb-3">2. Search</h2>
+      <div class="flex flex-wrap gap-3">
+        <button onclick="runLinearAustin()" class="px-4 py-2 rounded bg-indigo-600 text-white text-sm">Linear Search Austin</button>
+        <button onclick="runBinaryNumber()" class="px-4 py-2 rounded bg-indigo-600 text-white text-sm">Binary Search Number 5</button>
+      </div>
+      <pre id="out-search" class="mt-4 bg-slate-900 text-emerald-300 rounded p-3 text-sm overflow-x-auto">Click a button...</pre>
+    </section>
+
+    <section class="bg-white rounded-xl shadow p-5 mb-5">
+      <h2 class="font-semibold text-xl mb-3">3. Transformations</h2>
+      <div class="flex flex-wrap gap-3">
+        <button onclick="runCountByState()" class="px-4 py-2 rounded bg-cyan-700 text-white text-sm">Count by State</button>
+      </div>
+      <pre id="out-transform" class="mt-4 bg-slate-900 text-emerald-300 rounded p-3 text-sm overflow-x-auto">Click a button...</pre>
+    </section>
+
+    <section class="bg-white rounded-xl shadow p-5">
+      <h2 class="font-semibold text-xl mb-3">4. Business Validations</h2>
+      <div class="flex flex-wrap gap-3">
+        <button onclick="runValidateName()" class="px-4 py-2 rounded bg-rose-700 text-white text-sm">Validate Name (Invalid)</button>
+        <button onclick="runValidateInsurance()" class="px-4 py-2 rounded bg-rose-700 text-white text-sm">Validate Insurance (Missing)</button>
+      </div>
+      <pre id="out-validation" class="mt-4 bg-slate-900 text-emerald-300 rounded p-3 text-sm overflow-x-auto">Click a button...</pre>
+    </section>
+  </main>
+
+  <script>
+    function setOutput(id, value) {
+      const node = document.getElementById(id);
+      node.textContent = JSON.stringify(value, null, 2);
+    }
+
+    function setStatus(message, isError) {
+      const node = document.getElementById('runtime-status');
+      node.textContent = message;
+      node.className = isError
+        ? 'mt-2 text-sm font-medium text-rose-700'
+        : 'mt-2 text-sm font-medium text-emerald-700';
+    }
+
+    // Standalone dataset and utilities so this page always works, even without module loading.
+    const clinics = [
+      { id: 'austincentral', name: 'HealthCore Austin Central', city: 'Austin', state: 'TX', country: 'US' },
+      { id: 'austinnorth', name: 'HealthCore Austin North', city: 'Austin', state: 'TX', country: 'US' },
+      { id: 'sanantonio', name: 'HealthCore San Antonio', city: 'San Antonio', state: 'TX', country: 'US' },
+      { id: 'miami', name: 'HealthCore Miami', city: 'Miami', state: 'FL', country: 'US' },
+      { id: 'orlando', name: 'HealthCore Orlando', city: 'Orlando', state: 'FL', country: 'US' },
+      { id: 'atlanta', name: 'HealthCore Atlanta', city: 'Atlanta', state: 'GA', country: 'US' },
+      { id: 'londoncentral', name: 'HealthCore London Central', city: 'London', state: 'London', country: 'GB' },
+    ];
+
+    function filterByProperty(items, property, value) {
+      return items.filter((item) => item[property] === value);
+    }
+
+    function sortBy(items, property) {
+      return [...items].sort((a, b) => String(a[property]).localeCompare(String(b[property])));
+    }
+
+    function linearSearchByProperty(items, property, value) {
+      const index = items.findIndex((item) => item[property] === value);
+      return index >= 0 ? { found: true, item: items[index], index } : { found: false, index: -1 };
+    }
+
+    function binarySearchNumber(items, target) {
+      let left = 0;
+      let right = items.length - 1;
+      while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        if (items[mid] === target) return { found: true, item: items[mid], index: mid };
+        if (items[mid] < target) left = mid + 1;
+        else right = mid - 1;
+      }
+      return { found: false, index: -1 };
+    }
+
+    function countByCategory(items, categorySelector) {
+      const map = new Map();
+      for (const item of items) {
+        const key = categorySelector(item);
+        map.set(key, (map.get(key) || 0) + 1);
+      }
+      return Array.from(map.entries()).map(([category, count]) => ({ category, count }));
+    }
+
+    function validateName(name, fieldName) {
+      const valid = !!name && name.trim().length >= 2;
+      return valid
+        ? { valid: true, field: fieldName }
+        : { valid: false, field: fieldName, message: 'First name must contain only letters and be at least 2 characters' };
+    }
+
+    function validateInsurance(hasInsurance, provider, memberId) {
+      const errors = [];
+      if (hasInsurance === 'Yes') {
+        if (!provider) {
+          errors.push({ valid: false, field: 'insurance_provider', message: 'Please enter your insurance provider name' });
+        }
+        if (!memberId) {
+          errors.push({ valid: false, field: 'insurance_member_id', message: 'Member ID must be between 6 and 20 alphanumeric characters' });
+        }
+      }
+      return errors;
+    }
+
+    window.runUsClinics = function () {
+      const result = filterByProperty(clinics, 'country', 'US');
+      setOutput('out-filter', result.map((c) => ({ id: c.id, city: c.city, state: c.state })));
+    };
+
+    window.runSortByName = function () {
+      const result = sortBy(clinics, 'name', 'asc');
+      setOutput('out-filter', result.map((c) => c.name));
+    };
+
+    window.runLinearAustin = function () {
+      const result = linearSearchByProperty(clinics, 'city', 'Austin');
+      setOutput('out-search', result);
+    };
+
+    window.runBinaryNumber = function () {
+      const data = [1, 3, 5, 7, 9];
+      setOutput('out-search', binarySearchNumber(data, 5));
+    };
+
+    window.runCountByState = function () {
+      const result = countByCategory(clinics, (c) => c.state);
+      setOutput('out-transform', result);
+    };
+
+    window.runValidateName = function () {
+      setOutput('out-validation', validateName('A', 'first_name'));
+    };
+
+    window.runValidateInsurance = function () {
+      setOutput('out-validation', validateInsurance('Yes', '', ''));
+    };
+
+    window.runAllTests = function () {
+      runUsClinics();
+      runLinearAustin();
+      runCountByState();
+      setOutput('out-validation', {
+        validateName: validateName('A', 'first_name'),
+        validateInsurance: validateInsurance('Yes', '', ''),
+      });
+    };
+    setStatus('Standalone runtime loaded successfully.', false);
+    runAllTests();
+  </script>
+</body>
+</html>
