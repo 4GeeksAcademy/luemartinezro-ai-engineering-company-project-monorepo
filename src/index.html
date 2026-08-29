@@ -1,423 +1,596 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HealthCore — TypeScript Test Suite</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            health: {
-              50: '#e6faff',
-              100: '#b3f2ff',
-              200: '#92eaff',
-              300: '#75d4ff',
-              400: '#0069ff',
-              500: '#0031c4',
-              600: '#0016a2',
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HealthCore | Outpatient Care Across the US</title>
+    <meta
+      name="description"
+      content="HealthCore offers same-day outpatient care, specialist consultations, chronic disease management, and preventive health services across Texas, Florida, and Georgia."
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: '#eefcff',
+                100: '#d6f6ff',
+                200: '#92eaff',
+                300: '#75d4ff',
+                600: '#0069ff',
+                700: '#0031c4',
+                800: '#0016a2'
+              }
+            },
+            boxShadow: {
+              panel: '0 20px 60px rgba(0, 22, 162, 0.14)'
             }
           }
         }
+      };
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "MedicalOrganization",
+        "name": "HealthCore",
+        "description": "Outpatient healthcare network offering primary care, specialist consultations, chronic disease management, and preventive health programmes.",
+        "url": "https://www.healthcore.com",
+        "foundingDate": "2011",
+        "logo": "https://www.healthcore.com/logo.png",
+        "availableLanguage": ["English", "Spanish"],
+        "areaServed": ["US", "GB"],
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Austin",
+          "addressRegion": "Texas",
+          "addressCountry": "US"
+        },
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "+1-512-340-8800",
+          "contactType": "patient services",
+          "availableLanguage": ["English", "Spanish"]
+        },
+        "sameAs": [
+          "https://linkedin.com/company/healthcore",
+          "https://facebook.com/healthcore",
+          "https://instagram.com/healthcore"
+        ]
       }
-    }
-  </script>
-  <style>
-    body { font-family: 'Segoe UI', system-ui, sans-serif; }
-    .output-box { min-height: 3rem; }
-    .collapse-content { display: none; }
-    .collapse-content.open { display: block; }
-    pre { white-space: pre-wrap; word-break: break-word; max-height: 400px; overflow-y: auto; }
-  </style>
-</head>
-<body class="bg-health-50 text-gray-800">
-  <header class="bg-health-500 text-white p-6 shadow-lg">
-    <div class="max-w-6xl mx-auto">
-      <h1 class="text-3xl font-bold">HealthCore</h1>
-      <p class="text-health-200 mt-1">TypeScript Utilities — Test Suite</p>
-    </div>
-  </header>
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "MedicalClinic",
+            "name": "HealthCore Austin Central",
+            "telephone": "+1-512-340-8800",
+            "openingHours": "Mo-Fr 07:00-20:00, Sa 09:00-15:00",
+            "parentOrganization": {
+              "@type": "MedicalOrganization",
+              "name": "HealthCore"
+            }
+          },
+          {
+            "@type": "MedicalClinic",
+            "name": "HealthCore Austin North",
+            "telephone": "+1-512-340-8810",
+            "openingHours": "Mo-Fr 08:00-19:00",
+            "parentOrganization": {
+              "@type": "MedicalOrganization",
+              "name": "HealthCore"
+            }
+          },
+          {
+            "@type": "MedicalClinic",
+            "name": "HealthCore San Antonio",
+            "telephone": "+1-210-720-4400",
+            "openingHours": "Mo-Fr 08:00-18:00, Sa 09:00-13:00",
+            "parentOrganization": {
+              "@type": "MedicalOrganization",
+              "name": "HealthCore"
+            }
+          },
+          {
+            "@type": "MedicalClinic",
+            "name": "HealthCore Miami",
+            "telephone": "+1-305-510-7700",
+            "openingHours": "Mo-Fr 07:00-20:00, Sa 09:00-16:00",
+            "parentOrganization": {
+              "@type": "MedicalOrganization",
+              "name": "HealthCore"
+            }
+          },
+          {
+            "@type": "MedicalClinic",
+            "name": "HealthCore Orlando",
+            "telephone": "+1-407-892-6600",
+            "openingHours": "Mo-Fr 08:00-18:00",
+            "parentOrganization": {
+              "@type": "MedicalOrganization",
+              "name": "HealthCore"
+            }
+          },
+          {
+            "@type": "MedicalClinic",
+            "name": "HealthCore Atlanta",
+            "telephone": "+1-404-330-9900",
+            "openingHours": "Mo-Fr 08:00-19:00",
+            "parentOrganization": {
+              "@type": "MedicalOrganization",
+              "name": "HealthCore"
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body class="bg-slate-50 text-slate-900">
+    <div class="relative isolate overflow-hidden">
+      <div
+        class="absolute inset-x-0 top-0 -z-10 h-[34rem] bg-gradient-to-br from-brand-100 via-white to-brand-300"
+        aria-hidden="true"
+      ></div>
+      <header class="mx-auto max-w-7xl px-6 py-6 lg:px-8">
+        <nav class="flex items-center justify-between gap-6" aria-label="Primary navigation">
+          <a href="index.html" class="flex items-center gap-3" aria-label="HealthCore home page">
+            <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-800 text-lg font-bold text-white">HC</span>
+            <span>
+              <span class="block text-lg font-semibold tracking-tight text-brand-800">HealthCore</span>
+              <span class="block text-sm text-slate-600">Outpatient care network</span>
+            </span>
+          </a>
+          <div class="hidden items-center gap-8 text-sm font-medium text-slate-700 md:flex">
+            <a href="#home" class="transition hover:text-brand-700">Home</a>
+            <a href="#services" class="transition hover:text-brand-700">Services</a>
+            <a href="#locations" class="transition hover:text-brand-700">Locations</a>
+            <a href="#contact" class="transition hover:text-brand-700">Contact</a>
+          </div>
+          <div class="flex items-center gap-3">
+            <a href="index.html" class="rounded-full bg-brand-800 px-4 py-2 text-sm font-semibold text-white">EN</a>
+            <a href="index.es.html" class="rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-800 transition hover:border-brand-700 hover:text-brand-700">ES</a>
+          </div>
+        </nav>
+        </header>
 
-  <main class="max-w-6xl mx-auto p-6 space-y-6">
+      <main id="home">
+        <section class="mx-auto grid max-w-7xl gap-12 px-6 pb-20 pt-8 lg:grid-cols-[1.2fr_0.8fr] lg:px-8 lg:pb-24 lg:pt-10">
+          <div class="max-w-3xl">
+            <p class="inline-flex rounded-full border border-brand-200 bg-white/80 px-4 py-2 text-sm font-medium text-brand-800 shadow-sm">Trusted outpatient care in the US and UK since 2011</p>
+            <h1 class="mt-8 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">Healthcare that fits your life</h1>
+            <p class="mt-6 text-lg leading-8 text-slate-700 sm:text-xl">
+              12 outpatient clinics across the US and UK offering same-day appointments, extended hours, and bilingual care — so you can get the attention you need, when you need it.
+            </p>
+            <div class="mt-10 flex flex-col gap-4 sm:flex-row">
+              <a href="application.html" class="inline-flex items-center justify-center rounded-full bg-brand-700 px-7 py-4 text-base font-semibold text-white shadow-panel transition hover:bg-brand-800">Request an appointment</a>
+              <a href="#locations" class="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-7 py-4 text-base font-semibold text-slate-700 transition hover:border-brand-700 hover:text-brand-700">View clinic locations</a>
+            </div>
+            <dl class="mt-12 grid gap-5 sm:grid-cols-3">
+              <div class="rounded-3xl border border-white/80 bg-white/80 p-5 shadow-panel backdrop-blur">
+                <dt class="text-sm font-medium text-slate-500">Clinics</dt>
+                <dd class="mt-2 text-3xl font-semibold text-brand-800">12</dd>
+              </div>
+              <div class="rounded-3xl border border-white/80 bg-white/80 p-5 shadow-panel backdrop-blur">
+                <dt class="text-sm font-medium text-slate-500">US locations</dt>
+                <dd class="mt-2 text-3xl font-semibold text-brand-800">6</dd>
+              </div>
+              <div class="rounded-3xl border border-white/80 bg-white/80 p-5 shadow-panel backdrop-blur">
+                <dt class="text-sm font-medium text-slate-500">Same-day access</dt>
+                <dd class="mt-2 text-3xl font-semibold text-brand-800">Most sites</dd>
+              </div>
+            </dl>
+          </div>
 
-    <!-- SECTION 1: Filtering -->
-    <section class="bg-white rounded-xl shadow-md p-6 border border-health-100">
-      <h2 class="text-xl font-bold text-health-500 mb-4">1. Collection Management — Filtering</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runFilterByCategory()">
-          Filter by Country: US
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runFilterByProperty()">
-          Filter by State: TX
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runFilterByValues()">
-          Filter Cities: Austin, Miami
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runSortBy()">
-          Sort Clinics by Name (asc)
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runSortByMultiple()">
-          Sort by Country + City
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runGroupByCountry()">
-          Group by Country
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runCountByCountry()">
-          Count by Country
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runPaginate()">
-          Paginate (page 1, size 3)
-        </button>
-      </div>
-      <div id="filterOutput" class="output-box mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <p class="text-gray-400 italic">Click a button to see results...</p>
-      </div>
-    </section>
+          <aside class="rounded-[2rem] bg-slate-950 p-8 text-white shadow-panel" aria-label="HealthCore highlights">
+            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-200">Patient experience</p>
+            <h2 class="mt-4 text-2xl font-semibold tracking-tight">Professional care with practical access</h2>
+            <ul class="mt-8 space-y-5 text-sm leading-7 text-slate-200">
+              <li class="rounded-2xl border border-white/10 bg-white/5 p-4">Primary care, chronic disease management, and specialist consultations coordinated inside one network.</li>
+              <li class="rounded-2xl border border-white/10 bg-white/5 p-4">Bilingual teams support English and Spanish-speaking patients across US clinics.</li>
+              <li class="rounded-2xl border border-white/10 bg-white/5 p-4">Extended weekday hours and Saturday availability help patients fit care around work and family schedules.</li>
+            </ul>
+          </aside>
+        </section>
 
-    <!-- SECTION 2: Search -->
-    <section class="bg-white rounded-xl shadow-md p-6 border border-health-100">
-      <h2 class="text-xl font-bold text-health-500 mb-4">2. Search — Linear &amp; Binary</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runLinearSearch()">
-          Linear Search: "Austin"
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runLinearSearchAll()">
-          Linear Search All "TX"
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runBinarySearchNumber()">
-          Binary Search Number: [1,3,5,7,9] → 5
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runBinarySearchString()">
-          Binary Search String: find "Miami"
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runBinarySearchGeneric()">
-          Binary Search Generic: by Name
-        </button>
-      </div>
-      <div id="searchOutput" class="output-box mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <p class="text-gray-400 italic">Click a button to see results...</p>
-      </div>
-    </section>
+        <section id="services" class="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+          <div class="max-w-2xl">
+            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">Services</p>
+            <h2 class="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Outpatient care designed around everyday health needs</h2>
+          </div>
+          <div class="mt-12 grid gap-6 lg:grid-cols-3">
+            <article class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+              <h3 class="text-2xl font-semibold text-slate-950">Primary Care &amp; Chronic Disease</h3>
+              <ul class="mt-6 space-y-4 text-slate-700">
+                <li>Same-day appointments with primary care physicians</li>
+                <li>Ongoing management of diabetes, hypertension, and asthma</li>
+              </ul>
+            </article>
+            <article class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+              <h3 class="text-2xl font-semibold text-slate-950">Specialist Consultations</h3>
+              <ul class="mt-6 space-y-4 text-slate-700">
+                <li>Cardiology, endocrinology, pulmonology, and women's health</li>
+                <li>Referrals coordinated within the HealthCore network</li>
+              </ul>
+            </article>
+            <article class="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+              <h3 class="text-2xl font-semibold text-slate-950">Preventive Health &amp; Wellbeing</h3>
+              <ul class="mt-6 space-y-4 text-slate-700">
+                <li>Screenings, vaccinations, and annual check-ups</li>
+                <li>Mental health counselling and psychiatry referrals</li>
+              </ul>
+            </article>
+          </div>
+        </section>
 
-    <!-- SECTION 3: Transformations -->
-    <section class="bg-white rounded-xl shadow-md p-6 border border-health-100">
-      <h2 class="text-xl font-bold text-health-500 mb-4">3. Transformations &amp; Aggregations</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runCountCategory()">
-          Count by State
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runSummarizeNumeric()">
-          Summarize (age demo)
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runMinMax()">
-          Min / Max (hours demo)
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runFrequencyReport()">
-          Frequency Report by Country
-        </button>
-      </div>
-      <div id="transformOutput" class="output-box mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <p class="text-gray-400 italic">Click a button to see results...</p>
-      </div>
-    </section>
+        <section class="bg-white py-20">
+          <div class="mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-2 lg:px-8">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">Why HealthCore</p>
+              <h2 class="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Reliable access, extended schedules, and coordinated support</h2>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <article class="rounded-3xl bg-slate-50 p-6">
+                <h3 class="text-lg font-semibold text-slate-950">Same-day appointments</h3>
+                <p class="mt-3 text-slate-700">Available at most locations so patients can get care quickly without long delays.</p>
+              </article>
+              <article class="rounded-3xl bg-slate-50 p-6">
+                <h3 class="text-lg font-semibold text-slate-950">Extended hours</h3>
+                <p class="mt-3 text-slate-700">Weekdays until 7pm or 8pm, with Saturday availability at select clinics.</p>
+              </article>
+              <article class="rounded-3xl bg-slate-50 p-6">
+                <h3 class="text-lg font-semibold text-slate-950">Bilingual staff</h3>
+                <p class="mt-3 text-slate-700">English and Spanish support at US locations helps patients communicate clearly.</p>
+              </article>
+              <article class="rounded-3xl bg-slate-50 p-6">
+                <h3 class="text-lg font-semibold text-slate-950">12 clinics</h3>
+                <p class="mt-3 text-slate-700">Coverage across Texas, Florida, Georgia, and the United Kingdom.</p>
+              </article>
+            </div>
+          </div>
+        </section>
 
-    <!-- SECTION 4: Validations -->
-    <section class="bg-white rounded-xl shadow-md p-6 border border-health-100">
-      <h2 class="text-xl font-bold text-health-500 mb-4">4. Business Validations</h2>
-      <div class="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200 text-sm">
-        <p class="font-medium text-blue-800">Test validation with this sample data:</p>
-        <pre class="mt-2 text-blue-700" id="sampleDataDisplay"></pre>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runValidateEnquiry()">
-          Validate Full Enquiry
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runValidateName()">
-          Validate Name (invalid)
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runValidatePhone()">
-          Validate Phone (valid)
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runValidateInsurance()">
-          Validate Insurance
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runValidatePaediatric()">
-          Validate Paediatric (adult)
-        </button>
-        <button class="bg-health-400 text-white px-4 py-3 rounded-lg hover:bg-health-500 transition font-medium" onclick="runEveningClinic()">
-          Evening Clinic Warning
-        </button>
-      </div>
-      <div id="validationOutput" class="output-box mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <p class="text-gray-400 italic">Click a button to see results...</p>
-      </div>
-    </section>
+        <section id="locations" class="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">Locations</p>
+              <h2 class="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Find a US clinic near you</h2>
+            </div>
+            <a href="application.html" class="text-sm font-semibold text-brand-700 transition hover:text-brand-800">Start your enquiry</a>
+          </div>
+          <div class="mt-10 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-slate-200" role="table" aria-label="HealthCore US clinic locations">
+                <thead class="bg-slate-950 text-left text-sm font-semibold text-white">
+                  <tr>
+                    <th scope="col" class="px-6 py-4">Clinic name</th>
+                    <th scope="col" class="px-6 py-4">City</th>
+                    <th scope="col" class="px-6 py-4">State</th>
+                    <th scope="col" class="px-6 py-4">Phone</th>
+                    <th scope="col" class="px-6 py-4">Hours</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 text-sm text-slate-700">
+                  <tr>
+                    <td class="px-6 py-4 font-semibold text-slate-950">HealthCore Austin Central</td>
+                    <td class="px-6 py-4">Austin</td>
+                    <td class="px-6 py-4">TX</td>
+                    <td class="px-6 py-4">(512) 340-8800</td>
+                    <td class="px-6 py-4">Mon-Fri 7am-8pm · Sat 9am-3pm</td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 font-semibold text-slate-950">HealthCore Austin North</td>
+                    <td class="px-6 py-4">Austin</td>
+                    <td class="px-6 py-4">TX</td>
+                    <td class="px-6 py-4">(512) 340-8810</td>
+                    <td class="px-6 py-4">Mon-Fri 8am-7pm</td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 font-semibold text-slate-950">HealthCore San Antonio</td>
+                    <td class="px-6 py-4">San Antonio</td>
+                    <td class="px-6 py-4">TX</td>
+                    <td class="px-6 py-4">(210) 720-4400</td>
+                    <td class="px-6 py-4">Mon-Fri 8am-6pm · Sat 9am-1pm</td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 font-semibold text-slate-950">HealthCore Miami</td>
+                    <td class="px-6 py-4">Miami</td>
+                    <td class="px-6 py-4">FL</td>
+                    <td class="px-6 py-4">(305) 510-7700</td>
+                    <td class="px-6 py-4">Mon-Fri 7am-8pm · Sat 9am-4pm</td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 font-semibold text-slate-950">HealthCore Orlando</td>
+                    <td class="px-6 py-4">Orlando</td>
+                    <td class="px-6 py-4">FL</td>
+                    <td class="px-6 py-4">(407) 892-6600</td>
+                    <td class="px-6 py-4">Mon-Fri 8am-6pm</td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 font-semibold text-slate-950">HealthCore Atlanta</td>
+                    <td class="px-6 py-4">Atlanta</td>
+                    <td class="px-6 py-4">GA</td>
+                    <td class="px-6 py-4">(404) 330-9900</td>
+                    <td class="px-6 py-4">Mon-Fri 8am-7pm</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
-  </main>
+        <section id="contact" class="bg-slate-950 py-20 text-white">
+          <div class="mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-200">Contact</p>
+              <h2 class="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Speak with the right team quickly</h2>
+              <p class="mt-4 max-w-xl text-slate-300">Patients can start online and receive a follow-up call from the front desk within one business day.</p>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <article class="rounded-3xl border border-white/10 bg-white/5 p-6">
+                <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-200">General enquiries</h3>
+                <p class="mt-3 text-lg font-medium">info@healthcore.com</p>
+              </article>
+              <article class="rounded-3xl border border-white/10 bg-white/5 p-6">
+                <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-200">Austin HQ</h3>
+                <p class="mt-3 text-lg font-medium">(512) 340-8800</p>
+              </article>
+              <article class="rounded-3xl border border-white/10 bg-white/5 p-6">
+                <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-200">Miami</h3>
+                <p class="mt-3 text-lg font-medium">(305) 510-7700</p>
+              </article>
+              <article class="rounded-3xl border border-white/10 bg-white/5 p-6">
+                <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-200">UK (London)</h3>
+                <p class="mt-3 text-lg font-medium">+44 20 7946 0100</p>
+              </article>
+            </div>
+          </div>
+        </section>
+      <section id="utilities" class="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+          <div class="mb-10 text-center">
+            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">Developer Utilities</p>
+            <h2 class="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Test the utility functions</h2>
+            <p class="mt-3 text-slate-600">Validate collection management, search, transformations, and business rules. <span id="runtime-status" class="inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Loading...</span></p>
+          </div>
+          <div class="grid gap-6 lg:grid-cols-2">
+            <!-- Collections -->
+            <div class="rounded-2xl border border-white/80 bg-white/90 p-6 shadow-panel backdrop-blur">
+              <h3 class="font-semibold text-brand-800">1. Collection Management</h3>
+              <p class="mb-4 text-sm text-slate-500">Filter, sort, group, paginate</p>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="runFilterByCountry()" class="rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700">Filter US</button>
+                <button onclick="runSortByName()" class="rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700">Sort by Name</button>
+                <button onclick="runGroupByCountry()" class="rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700">Group by Country</button>
+                <button onclick="runPaginate()" class="rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700">Paginate</button>
+              </div>
+              <pre id="output-collections" class="mt-4 rounded-xl bg-slate-900 p-3 text-xs text-emerald-300 overflow-x-auto">Click a button...</pre>
+            </div>
+            <!-- Search -->
+            <div class="rounded-2xl border border-white/80 bg-white/90 p-6 shadow-panel backdrop-blur">
+              <h3 class="font-semibold text-indigo-800">2. Search Algorithms</h3>
+              <p class="mb-4 text-sm text-slate-500">Linear &amp; binary search</p>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="runLinearSearch()" class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700">Linear: Austin</button>
+                <button onclick="runBinarySearchNumber()" class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700">Binary: Find 5</button>
+                <button onclick="runBinarySearchString()" class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700">Binary: Miami</button>
+              </div>
+              <pre id="output-search" class="mt-4 rounded-xl bg-slate-900 p-3 text-xs text-emerald-300 overflow-x-auto">Click a button...</pre>
+            </div>
+            <!-- Transformations -->
+            <div class="rounded-2xl border border-white/80 bg-white/90 p-6 shadow-panel backdrop-blur">
+              <h3 class="font-semibold text-cyan-800">3. Transformations</h3>
+              <p class="mb-4 text-sm text-slate-500">Aggregations and reports</p>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="runCountByState()" class="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-cyan-800">Count by State</button>
+                <button onclick="runSummarizeAges()" class="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-cyan-800">Summarize Ages</button>
+                <button onclick="runMinMaxHours()" class="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-cyan-800">Min/Max Hours</button>
+              </div>
+              <pre id="output-transformations" class="mt-4 rounded-xl bg-slate-900 p-3 text-xs text-emerald-300 overflow-x-auto">Click a button...</pre>
+            </div>
+            <!-- Validations -->
+            <div class="rounded-2xl border border-white/80 bg-white/90 p-6 shadow-panel backdrop-blur">
+              <h3 class="font-semibold text-rose-800">4. Business Validations</h3>
+              <p class="mb-4 text-sm text-slate-500">HealthCore-specific rules</p>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="runValidateEnquiry()" class="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700">Validate Enquiry</button>
+                <button onclick="runValidateName()" class="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700">Invalid Name</button>
+                <button onclick="runValidateInsurance()" class="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700">Missing Insurance</button>
+                <button onclick="runValidatePaediatric()" class="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700">Paediatric (adult)</button>
+              </div>
+              <pre id="output-validations" class="mt-4 rounded-xl bg-slate-900 p-3 text-xs text-emerald-300 overflow-x-auto">Click a button...</pre>
+            </div>
+          </div>
+        </section>
 
-  <footer class="bg-health-600 text-white text-center p-4 mt-8 text-sm">
-    <p>&copy; 2025 HealthCore — TypeScript Utilities Test Suite</p>
-  </footer>
+      </main>
 
-  <script type="module">
-    // ─────────────────────────────────────────────────────────────
-    // Import all utilities
-    // ─────────────────────────────────────────────────────────────
-    import {
-      US_CLINICS, UK_CLINICS, ALL_CLINICS, MEDICAL_SERVICES,
-      calculateAge, getClinicById, getPublicClinics,
-    } from './types/models.js';
-
-    import {
-      filterBy, filterByProperty, filterByValues,
-      sortBy, sortByMultiple,
-      groupBy, groupByEntries,
-      paginate, countBy, uniqueValues,
-    } from './utils/collections.js';
-
-    import {
-      linearSearch, linearSearchAll, linearSearchByProperty,
-      binarySearchNumber, binarySearchString, binarySearch,
-    } from './utils/search.js';
-
-    import {
-      countByCategory, summarizeNumeric, summarizeProperty,
-      min, max, minBy, maxBy,
-      sum, average, frequencyReport,
-    } from './utils/transformations.js';
-
-    import {
-      validatePatientEnquiry, validateName, validatePhone,
-      validateInsurance, validatePaediatricCare,
-      validateDateOfBirth, validateEmail, validateHealthConcern,
-      validateConsent, validatePatientId, checkEveningClinicAvailability,
-    } from './utils/validations.js';
-
-    // ─────────────────────────────────────────────────────────────
-    // Expose to window for button handlers
-    // ─────────────────────────────────────────────────────────────
-    window.HealthCore = {
-      US_CLINICS, UK_CLINICS, ALL_CLINICS, MEDICAL_SERVICES,
-      calculateAge, getClinicById, getPublicClinics,
-      filterBy, filterByProperty, filterByValues,
-      sortBy, sortByMultiple,
-      groupBy, groupByEntries,
-      paginate, countBy, uniqueValues,
-      linearSearch, linearSearchAll, linearSearchByProperty,
-      binarySearchNumber, binarySearchString, binarySearch,
-      countByCategory, summarizeNumeric, summarizeProperty,
-      min, max, minBy, maxBy,
-      sum, average, frequencyReport,
-      validatePatientEnquiry, validateName, validatePhone,
-      validateInsurance, validatePaediatricCare,
-      validateDateOfBirth, validateEmail, validateHealthConcern,
-      validateConsent, validatePatientId, checkEveningClinicAvailability,
-    };
-
-    // Display sample data
-    document.getElementById('sampleDataDisplay').textContent = JSON.stringify({
-      firstName: 'Ana',
-      lastName: 'García',
-      dateOfBirth: '1990-05-15',
-      email: 'ana.garcia@example.com',
-      phone: '+1 512 555 0191',
-      preferredLanguage: 'Spanish',
-      preferredClinic: 'austincentral',
-      preferredDate: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0],
-      preferredTime: 'Morning (7am–12pm)',
-      serviceType: 'Primary Care',
-      isNewPatient: 'Yes',
-      hasInsurance: 'Yes',
-      insurance: { provider: 'BlueCross', memberId: 'BC123456' },
-      healthConcern: 'I have been experiencing persistent lower back pain for the past two weeks.',
-      contactConsent: true,
-    }, null, 2);
-
-    // ─────────────────────────────────────────────────────────────
-    // Output helpers
-    // ─────────────────────────────────────────────────────────────
-    function showOutput(containerId, label, data) {
-      const el = document.getElementById(containerId);
-      const labelStr = typeof label === 'string' ? label : JSON.stringify(label, null, 2);
-      const dataStr = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
-      el.innerHTML = `
-        <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 mb-2">
-          <strong class="text-blue-800">${labelStr}</strong>
+      <footer class="border-t border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between lg:px-8">
+          <p>© 2025 HealthCore. All rights reserved.</p>
+          <div class="flex gap-6 font-medium text-slate-700">
+            <a href="https://linkedin.com/company/healthcore" class="transition hover:text-brand-700" aria-label="HealthCore on LinkedIn">LinkedIn</a>
+            <a href="https://facebook.com/healthcore" class="transition hover:text-brand-700" aria-label="HealthCore on Facebook">Facebook</a>
+            <a href="https://instagram.com/healthcore" class="transition hover:text-brand-700" aria-label="HealthCore on Instagram">Instagram</a>
+          </div>
         </div>
-        <pre class="bg-gray-900 text-green-300 p-4 rounded-lg text-sm overflow-x-auto">${escapeHtml(dataStr)}</pre>
-      `;
-    }
+      </footer>
+    </div>
 
-    function escapeHtml(str) {
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
+    <script type="module">
+      // ─────────────────────────────────────────────────────────────
+      // Import all utility modules
+      // ─────────────────────────────────────────────────────────────
+      import {
+        US_CLINICS, UK_CLINICS, ALL_CLINICS, MEDICAL_SERVICES,
+        calculateAge, getClinicById, getPublicClinics,
+      } from './types/models.js';
 
-    // ─────────────────────────────────────────────────────────────
-    // SECTION 1: Filtering Handlers
-    // ─────────────────────────────────────────────────────────────
-    window.runFilterByCategory = function() {
-      const result = filterByProperty(ALL_CLINICS, 'country', 'US');
-      showOutput('filterOutput',
-        `filterByProperty(clinics, 'country', 'US') → ${result.length} clinics`,
-        result.map(c => ({ name: c.name, city: c.city, state: c.state }))
-      );
-    };
+      import {
+        filterBy, filterByProperty, filterByValues,
+        sortBy, sortByMultiple,
+        groupBy, groupByEntries,
+        paginate, countBy, uniqueValues,
+      } from './utils/collections.js';
 
-    window.runFilterByProperty = function() {
-      const result = filterByProperty(ALL_CLINICS, 'state', 'TX');
-      showOutput('filterOutput',
-        `filterByProperty(clinics, 'state', 'TX') → ${result.length} clinics`,
-        result.map(c => ({ name: c.name, city: c.city, phone: c.phone }))
-      );
-    };
+      import {
+        linearSearch, linearSearchAll, linearSearchByProperty,
+        binarySearchNumber, binarySearchString, binarySearch,
+      } from './utils/search.js';
 
-    window.runFilterByValues = function() {
-      const result = filterByValues(ALL_CLINICS, 'city', ['Austin', 'Miami']);
-      showOutput('filterOutput',
-        `filterByValues(clinics, 'city', ['Austin', 'Miami']) → ${result.length} clinics`,
-        result.map(c => ({ name: c.name, city: c.city, state: c.state }))
-      );
-    };
+      import {
+        countByCategory, summarizeNumeric, summarizeProperty,
+        min, max, minBy, maxBy,
+        sum, average, frequencyReport,
+      } from './utils/transformations.js';
 
-    window.runSortBy = function() {
-      const result = sortBy(ALL_CLINICS, 'name', 'asc');
-      showOutput('filterOutput',
-        'sortBy(clinics, "name", "asc") → clinics sorted alphabetically',
-        result.map(c => ({ name: c.name, city: c.city }))
-      );
-    };
+      import {
+        validatePatientEnquiry, validateName, validatePhone,
+        validateInsurance, validatePaediatricCare,
+        validateDateOfBirth, validateEmail, validateHealthConcern,
+        validateConsent, validatePatientId, checkEveningClinicAvailability,
+        validatePreferredDate,
+      } from './utils/validations.js';
 
-    window.runSortByMultiple = function() {
-      const result = sortByMultiple(ALL_CLINICS, [
-        { property: 'country', direction: 'asc' },
-        { property: 'city', direction: 'asc' },
-      ]);
-      showOutput('filterOutput',
-        'sortByMultiple(clinics, [country asc, city asc])',
-        result.map(c => ({ name: c.name, city: c.city, country: c.country }))
-      );
-    };
+      // ─────────────────────────────────────────────────────────────
+      // Runtime status
+      // ─────────────────────────────────────────────────────────────
+      const statusEl = document.getElementById('runtime-status');
+      if (statusEl) {
+        statusEl.textContent = `✓ Loaded: ${ALL_CLINICS.length} clinics, ${MEDICAL_SERVICES.length} services`;
+      }
 
-    window.runGroupByCountry = function() {
-      const groups = groupBy(ALL_CLINICS, (c) => c.country);
-      const output = {};
-      groups.forEach((items, key) => {
-        output[key] = items.map(c => c.name);
-      });
-      showOutput('filterOutput', 'groupBy(clinics, country)', output);
-    };
+      // ─────────────────────────────────────────────────────────────
+      // UI Helpers
+      // ─────────────────────────────────────────────────────────────
+      function showOutput(containerId, title, data) {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        const titleHtml = title
+          ? `<div class="mb-2 rounded-lg bg-slate-800 p-2 text-xs font-semibold text-brand-200">${escapeHtml(title)}</div>`
+          : '';
+        const dataStr = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        el.innerHTML = titleHtml + `<pre class="overflow-x-auto text-xs leading-relaxed">${escapeHtml(dataStr)}</pre>`;
+      }
 
-    window.runCountByCountry = function() {
-      const counts = countBy(ALL_CLINICS, (c) => c.country);
-      const output = {};
-      counts.forEach((count, key) => { output[key] = count; });
-      showOutput('filterOutput', 'countBy(clinics, country)', output);
-    };
+      function escapeHtml(str) {
+        if (typeof str !== 'string') str = String(str);
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
 
-    window.runPaginate = function() {
-      const result = paginate(ALL_CLINICS, 1, 3);
-      showOutput('filterOutput',
-        'paginate(clinics, page=1, size=3)',
-        result.map(c => ({ name: c.name, city: c.city }))
-      );
-    };
+      // ─────────────────────────────────────────────────────────────
+      // SECTION 1: Collection Management
+      // ─────────────────────────────────────────────────────────────
+      window.runFilterByCountry = function () {
+        const result = filterByProperty(ALL_CLINICS, 'country', 'US');
+        showOutput('output-collections',
+          `filterByProperty(clinics, 'country', 'US') → ${result.length} clinics`,
+          result.map((c) => ({ name: c.name, city: c.city, state: c.state }))
+        );
+      };
 
-    // ─────────────────────────────────────────────────────────────
-    // SECTION 2: Search Handlers
-    // ─────────────────────────────────────────────────────────────
-    window.runLinearSearch = function() {
-      const result = linearSearchByProperty(ALL_CLINICS, 'city', 'Austin');
-      showOutput('searchOutput',
-        `linearSearchByProperty(clinics, 'city', 'Austin') → found=${result.found}, index=${result.index}`,
-        result.item ? { name: result.item.name, city: result.item.city } : 'Not found'
-      );
-    };
+      window.runSortByName = function () {
+        const result = sortBy(ALL_CLINICS, 'name', 'asc');
+        showOutput('output-collections',
+          `sortBy(clinics, 'name', 'asc')`,
+          result.map((c, i) => ({ '#': i + 1, name: c.name, city: c.city }))
+        );
+      };
 
-    window.runLinearSearchAll = function() {
-      const result = linearSearchAll(ALL_CLINICS, (c) => c.state === 'TX');
-      showOutput('searchOutput',
-        `linearSearchAll(clinics, state=TX) → ${result.length} clinics found`,
-        result.map(c => ({ name: c.name, city: c.city, state: c.state }))
-      );
-    };
+      window.runGroupByCountry = function () {
+        const result = groupBy(ALL_CLINICS, (c) => c.country);
+        const output = {};
+        for (const [key, items] of result.entries()) {
+          output[key] = items.map((c) => c.name);
+        }
+        showOutput('output-collections', 'groupBy(clinics, country)', output);
+      };
 
-    window.runBinarySearchNumber = function() {
-      const data = [1, 3, 5, 7, 9, 11, 13];
-      const result = binarySearchNumber(data, 5);
-      showOutput('searchOutput',
-        `binarySearchNumber([${data}], 5) → found=${result.found}, index=${result.index}`,
-        result
-      );
-    };
+      window.runPaginate = function () {
+        const result = paginate(ALL_CLINICS, 1, 3);
+        showOutput('output-collections',
+          `paginate(clinics, page=1, size=3)`,
+          result.map((c) => ({ name: c.name, city: c.city }))
+        );
+      };
 
-    window.runBinarySearchString = function() {
-      const cities = ALL_CLINICS.map(c => c.city).sort();
-      const target = 'Miami';
-      const result = binarySearchString(cities, target);
-      showOutput('searchOutput',
-        `binarySearchString(sorted cities, "${target}") → found=${result.found}, index=${result.index}`,
-        { sortedCities: cities, result }
-      );
-    };
+      // ─────────────────────────────────────────────────────────────
+      // SECTION 2: Search
+      // ─────────────────────────────────────────────────────────────
+      window.runLinearSearch = function () {
+        const result = linearSearchByProperty(ALL_CLINICS, 'city', 'Austin');
+        showOutput('output-search',
+          `linearSearchByProperty(clinics, 'city', 'Austin') → found=${result.found}`,
+          result.found
+            ? { name: result.item.name, city: result.item.city }
+            : 'Not found'
+        );
+      };
 
-    window.runBinarySearchGeneric = function() {
-      const sorted = sortBy(ALL_CLINICS, 'name', 'asc');
-      const target = sorted[3]; // Pick the 4th element
-      const comparator = (a, b) => a.name.localeCompare(b.name);
-      const result = binarySearch(sorted, target, comparator);
-      showOutput('searchOutput',
-        `binarySearch(generic, by name) → looking for "${target.name}"`,
-        { found: result.found, index: result.index, item: result.item?.name }
-      );
-    };
+      window.runBinarySearchNumber = function () {
+        const data = [1, 3, 5, 7, 9, 11, 13];
+        const result = binarySearchNumber(data, 5);
+        showOutput('output-search',
+          `binarySearchNumber([${data.join(', ')}], target=5)`,
+          result
+        );
+      };
 
-    // ─────────────────────────────────────────────────────────────
-    // SECTION 3: Transformation Handlers
-    // ─────────────────────────────────────────────────────────────
-    window.runCountCategory = function() {
-      const result = countByCategory(ALL_CLINICS, (c) => c.state);
-      showOutput('transformOutput', 'countByCategory(clinics, state)', result);
-    };
+      window.runBinarySearchString = function () {
+        const cities = [...new Set(ALL_CLINICS.map((c) => c.city))].sort();
+        const target = 'Miami';
+        const result = binarySearchString(cities, target);
+        showOutput('output-search',
+          `binarySearchString(cities, "${target}") → found=${result.found}`,
+          { sortedCities: cities, target, result }
+        );
+      };
 
-    window.runSummarizeNumeric = function() {
-      // Demo: ages from sample patients
-      const ages = [25, 34, 45, 60, 18, 72, 41, 55, 30, 22, 67, 38];
-      const items = ages.map((age, i) => ({ id: i + 1, age }));
-      const result = summarizeNumeric(items, 'Patient Ages', (p) => p.age);
-      showOutput('transformOutput', 'summarizeNumeric(patient ages)', result);
-    };
+      // ─────────────────────────────────────────────────────────────
+      // SECTION 3: Transformations
+      // ─────────────────────────────────────────────────────────────
+      window.runCountByState = function () {
+        const result = countByCategory(ALL_CLINICS, (c) => c.state);
+        showOutput('output-transformations',
+          'countByCategory(clinics, state)',
+          result
+        );
+      };
 
-    window.runMinMax = function() {
-      // Parse closing hours into comparable values
-      const closingHours = ALL_CLINICS.map(c => {
-        const latest = c.hours.reduce((maxH, h) => {
-          if (h.isClosed) return maxH;
-          const hour = parseInt(h.close.match(/(\d+)/)[1], 10);
-          const isPM = h.close.includes('pm');
-          return Math.max(maxH, isPM && hour !== 12 ? hour + 12 : hour);
-        }, 0);
-        return { name: c.name, closingHour: latest };
-      });
+      window.runSummarizeAges = function () {
+        const ages = [25, 34, 45, 60, 18, 72, 41, 55, 30, 22, 67, 38];
+        const items = ages.map((age, i) => ({ id: i + 1, age }));
+        const result = summarizeNumeric(items, 'Patient Ages', (p) => p.age);
+        showOutput('output-transformations',
+          'summarizeNumeric(ages, n=12)',
+          result
+        );
+      };
 
-      const maxItem = maxBy(closingHours, (c) => c.closingHour);
-      const minItem = minBy(closingHours, (c) => c.closingHour);
-      showOutput('transformOutput', 'Min / Max closing hours',
-        { earliestClosing: minItem, latestClosing: maxItem }
-      );
-    };
+      window.runMinMaxHours = function () {
+        const closingPm = ALL_CLINICS.map((c) => {
+          const latest = c.hours.reduce((maxH, h) => {
+            if (h.isClosed) return maxH;
+            const num = parseInt(h.close.match(/(\d+)/)?.[1] || '0', 10);
+            const pm = h.close.includes('pm');
+            return Math.max(maxH, pm ? (num === 12 ? 12 : num + 12) : num);
+          }, 0);
+          return { name: c.name, city: c.city, latestClosing: latest };
+        });
+        const minItem = minBy(closingPm, (c) => c.latestClosing);
+        const maxItem = maxBy(closingPm, (c) => c.latestClosing);
+        showOutput('output-transformations',
+          'minBy / maxBy(clinics, latest closing hour)',
+          { earliestClosing: minItem, latestClosing: maxItem }
+        );
+      };
 
-    window.runFrequencyReport = function() {
-      const result = frequencyReport(ALL_CLINICS, (c) => c.country);
-      showOutput('transformOutput', 'frequencyReport(clinics, country)', result);
-    };
-
-    // ─────────────────────────────────────────────────────────────
-    // SECTION 4: Validation Handlers
-    // ─────────────────────────────────────────────────────────────
-    window.runValidateEnquiry = function() {
-      const data = {
+      // ─────────────────────────────────────────────────────────────
+      // SECTION 4: Business Validations
+      // ─────────────────────────────────────────────────────────────
+      const SAMPLE_ENQUIRY = {
         firstName: 'Ana',
         lastName: 'García',
         dateOfBirth: '1990-05-15',
@@ -434,53 +607,38 @@
         healthConcern: 'I have been experiencing persistent lower back pain for the past two weeks.',
         contactConsent: true,
       };
-      const result = validatePatientEnquiry(data);
-      showOutput('validationOutput',
-        `validatePatientEnquiry(valid data) → valid=${result.valid}, errors=${result.errors.length}`,
-        result.valid ? '✅ All validations passed!' : result.errors
-      );
-    };
 
-    window.runValidateName = function() {
-      const result = validateName('A', 'first_name');
-      showOutput('validationOutput',
-        'validateName("A", "first_name") → should fail (too short)',
-        result
-      );
-    };
+      window.runValidateEnquiry = function () {
+        const result = validatePatientEnquiry(SAMPLE_ENQUIRY);
+        showOutput('output-validations',
+          `validatePatientEnquiry(valid sample) → valid=${result.valid}`,
+          result
+        );
+      };
 
-    window.runValidatePhone = function() {
-      const result = validatePhone('+34 612 345 678');
-      showOutput('validationOutput',
-        'validatePhone("+34 612 345 678") → should be valid',
-        result
-      );
-    };
+      window.runValidateName = function () {
+        const result = validateName('A', 'first_name');
+        showOutput('output-validations',
+          'validateName("A", "first_name") — too short',
+          result
+        );
+      };
 
-    window.runValidateInsurance = function() {
-      const result = validateInsurance('Yes', '', '');
-      showOutput('validationOutput',
-        'validateInsurance(Yes, "", "") → should show errors',
-        result
-      );
-    };
+      window.runValidateInsurance = function () {
+        const errors = validateInsurance('Yes', '', '');
+        showOutput('output-validations',
+          'validateInsurance(Yes, "", "")',
+          errors.length > 0 ? errors : 'No errors (should not happen)'
+        );
+      };
 
-    window.runValidatePaediatric = function() {
-      const result = validatePaediatricCare('Paediatric Care', '1990-05-15');
-      showOutput('validationOutput',
-        'validatePaediatricCare(Paediatric, adult DOB) → should fail',
-        result
-      );
-    };
-
-    window.runEveningClinic = function() {
-      const clinic = getClinicById('sanantonio');
-      const result = checkEveningClinicAvailability('Evening (5pm–8pm)', clinic);
-      showOutput('validationOutput',
-        `checkEveningClinicAvailability(Evening, ${clinic?.name})`,
-        result || '✅ No warning — clinic is open late enough'
-      );
-    };
-  </script>
-</body>
+      window.runValidatePaediatric = function () {
+        const result = validatePaediatricCare('Paediatric Care', '1990-05-15');
+        showOutput('output-validations',
+          'validatePaediatricCare(Paediatric, adult)',
+          result
+        );
+      };
+    </script>
+  </body>
 </html>
