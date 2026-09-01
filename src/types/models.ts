@@ -1,437 +1,345 @@
 /**
- * HealthCore — Domain Models
+ * HealthCore — Milestone 2: Domain Models
  *
- * TypeScript interfaces and types representing the main business entities
- * for the HealthCore outpatient healthcare network.
- *
- * Context: HealthCore operates 12 outpatient clinics across the US and UK,
- * offering primary care, specialist consultations, chronic disease management,
- * and preventive health programmes.
+ * TypeScript interfaces representing the main business entities for
+ * HealthCore's internal operations dashboard: claims, appointments,
+ * clinicians, and locations.
  *
  * @package @repo/shared-types
  */
 
 // ──────────────────────────────────────────────
-// Enums & Literal Types
+// Shared Literal Types
 // ──────────────────────────────────────────────
 
-/** Countries where HealthCore operates */
-export type Country = 'US' | 'GB';
-
-/** US States where HealthCore has clinics */
-export type UsState = 'TX' | 'FL' | 'GA';
-
-/** UK Cities where HealthCore has clinics */
-export type UkCity = 'London' | 'Manchester';
-
-/** Languages supported by HealthCore */
-export type SupportedLanguage = 'English' | 'Spanish';
-
-/** Time-of-day slots for appointments */
-export type TimeOfDay = 'Morning (7am–12pm)' | 'Afternoon (12pm–5pm)' | 'Evening (5pm–8pm)';
-
-/** Types of medical services HealthCore offers */
 export type ServiceType =
-  | 'Primary Care'
-  | 'Chronic Disease Management'
-  | 'Specialist Consultation'
-  | 'Preventive Health'
-  | "Women's Health"
-  | 'Paediatric Care'
-  | 'Mental Health';
+  | "primary_care"
+  | "chronic_disease"
+  | "preventive"
+  | "specialist"
+  | "womens_health"
+  | "paediatric"
+  | "mental_health";
 
-/** Insurance status */
-export type InsuranceStatus = 'Yes' | 'No';
+export type ClaimStatus = "submitted" | "approved" | "denied" | "pending" | "appealed";
 
-/** New or returning patient */
-export type NewPatientStatus = 'Yes' | 'No';
+export type DenialReason =
+  | "missing_authorisation"
+  | "coding_error"
+  | "duplicate_claim"
+  | "patient_not_covered"
+  | "service_not_covered"
+  | "incomplete_documentation";
+
+export type AppointmentStatus =
+  | "scheduled"
+  | "confirmed"
+  | "completed"
+  | "no_show"
+  | "cancelled";
+
+export type ClinicianRole =
+  | "physician"
+  | "nurse_practitioner"
+  | "nurse"
+  | "medical_assistant";
+
+export type CMEStatus = "on_track" | "at_risk" | "overdue" | "complete";
 
 // ──────────────────────────────────────────────
 // Core Business Entities
 // ──────────────────────────────────────────────
 
-/** Operating hours for a specific day or range */
-export interface BusinessHours {
-  /** Days of the week (e.g., "Mon–Fri", "Sat") */
-  days: string;
-  /** Opening time in 12h format (e.g., "7am") */
-  open: string;
-  /** Closing time in 12h format (e.g., "8pm") */
-  close: string;
-  /** Whether the clinic is closed on these days */
-  isClosed?: boolean;
-}
-
-/** A physical HealthCore clinic location */
-export interface Clinic {
-  /** Unique identifier (e.g., "austincentral") */
-  id: string;
-  /** Full clinic name (e.g., "HealthCore Austin Central") */
-  name: string;
-  /** City where the clinic is located */
-  city: string;
-  /** State or region abbreviation */
-  state: UsState | string;
-  /** Country code */
-  country: Country;
-  /** Primary phone number */
-  phone: string;
-  /** Street address */
-  address?: string;
-  /** Operating hours schedule */
-  hours: BusinessHours[];
-  /** Whether this clinic appears on the public website */
-  isPublicOnWebsite: boolean;
-  /** Languages available at this location */
-  availableLanguages: SupportedLanguage[];
-}
-
-/** Insurance information provided by the patient */
-export interface InsuranceInfo {
-  /** Name of the insurance provider */
-  provider: string;
-  /** Member/Policy ID (6–20 alphanumeric characters) */
-  memberId: string;
-}
-
-/** A patient enquiry submitted through the website form */
-export interface PatientEnquiry {
-  /** Patient's first name (2–50 letters only) */
-  firstName: string;
-  /** Patient's last name (2–50 letters only) */
-  lastName: string;
-  /** Date of birth (ISO format YYYY-MM-DD) */
-  dateOfBirth: string;
-  /** Email address */
-  email: string;
-  /** Phone number with country code (e.g., +1 305 555 0191) */
-  phone: string;
-  /** Preferred consultation language */
-  preferredLanguage: SupportedLanguage;
-  /** Preferred clinic ID */
-  preferredClinic: string;
-  /** Preferred appointment date (ISO format YYYY-MM-DD) */
-  preferredDate: string;
-  /** Preferred time of day */
-  preferredTime: TimeOfDay;
-  /** Type of medical service needed */
+/** A billing request submitted to an insurance payer after a patient visit */
+export interface Claim {
+  claimId: string;
+  patientId: string;
+  locationId: string;
   serviceType: ServiceType;
-  /** Whether this is the patient's first visit */
-  isNewPatient: NewPatientStatus;
-  /** Patient ID (for returning patients, format HC-XXXXXX) */
-  patientId?: string;
-  /** Whether the patient has health insurance */
-  hasInsurance: InsuranceStatus;
-  /** Insurance details (required if hasInsurance === 'Yes') */
-  insurance?: InsuranceInfo;
-  /** Description of the health concern (20–500 characters) */
-  healthConcern: string;
-  /** Consent to be contacted */
-  contactConsent: boolean;
+  payerName: string;
+  payerId: string;
+  submissionDate: string;
+  claimAmount: number;
+  status: ClaimStatus;
+  denialReason?: DenialReason;
+  resubmitted: boolean;
 }
 
-/** A patient profile stored in the system */
-export interface Patient {
-  /** Unique patient identifier (format HC-XXXXXX) */
-  id: string;
-  /** First name */
+/** A scheduled patient visit at a HealthCore clinic */
+export interface Appointment {
+  appointmentId: string;
+  patientId: string;
+  locationId: string;
+  serviceType: ServiceType;
+  scheduledDate: string;
+  scheduledTime: string;
+  status: AppointmentStatus;
+  noShowReason?: string;
+  confirmedAt?: string;
+}
+
+/** A licensed clinician who must maintain CME hours */
+export interface Clinician {
+  clinicianId: string;
   firstName: string;
-  /** Last name */
   lastName: string;
-  /** Date of birth (ISO format YYYY-MM-DD) */
-  dateOfBirth: string;
-  /** Email address */
-  email: string;
-  /** Phone number */
-  phone: string;
-  /** Preferred language */
-  preferredLanguage: SupportedLanguage;
-  /** Primary clinic assignment */
-  primaryClinic: string;
-  /** Insurance information (if applicable) */
-  insurance?: InsuranceInfo;
-  /** Date the patient profile was created */
-  createdAt: string;
-  /** Date of last update */
-  updatedAt: string;
+  role: ClinicianRole;
+  locationId: string;
+  licenceState: string;
+  licenceExpiryDate: string;
+  cmeHoursRequired: number;
+  cmeHoursLogged: number;
+  cmeYearStartDate: string;
 }
 
-/** A medical service offered by HealthCore */
-export interface MedicalService {
-  /** Unique identifier */
-  id: string;
-  /** Service type category */
-  type: ServiceType;
-  /** Short display name */
+/** A HealthCore clinic location with fee data for no-show cost estimation */
+export interface Location {
+  locationId: string;
   name: string;
-  /** Brief description of the service */
-  description: string;
-  /** Whether this service is available for new patients */
-  availableForNewPatients: boolean;
-  /** Minimum age requirement (0 if no minimum) */
-  minAge: number;
-  /** Maximum age requirement (undefined if no upper limit) */
-  maxAge?: number;
+  city: string;
+  stateOrCountry: string;
+  country: "US" | "UK";
+  phone: string;
+  averageConsultationFee: Record<ServiceType, number>;
 }
 
 // ──────────────────────────────────────────────
-// Aggregation / Report Types
+// Report Types
 // ──────────────────────────────────────────────
 
-/** Result of counting elements by category */
-export interface CategoryCount {
-  category: string;
-  count: number;
+/** One entry per clinician in the weekly CME compliance report */
+export interface CMEReport {
+  clinicianId: string;
+  fullName: string;
+  role: ClinicianRole;
+  locationId: string;
+  hoursRequired: number;
+  hoursLogged: number;
+  hoursRemaining: number;
+  percentComplete: number;
+  daysRemainingInCycle: number;
+  complianceStatus: CMEStatus;
+  licenceExpiryDate: string;
+  licenceDaysRemaining: number;
 }
 
-/** A generic summary report for numeric aggregations */
-export interface NumericSummary {
-  /** Name of the metric or category */
-  label: string;
-  total: number;
-  average: number;
-  min: number;
-  max: number;
-  count: number;
-}
-
-/** Result of a validation check */
+/** Validation result */
 export interface ValidationResult {
   valid: boolean;
-  field?: string;
-  message?: string;
-}
-
-/** A collection of validation errors */
-export interface ValidationErrors {
-  valid: boolean;
-  errors: ValidationResult[];
+  errors: string[];
 }
 
 // ──────────────────────────────────────────────
-// Concrete Instances (Literal Objects)
+// Sample Data
 // ──────────────────────────────────────────────
 
-/** HealthCore's US clinic locations (public-facing) */
-export const US_CLINICS: Clinic[] = [
+export const sampleLocations: Location[] = [
   {
-    id: 'austincentral',
-    name: 'HealthCore Austin Central',
-    city: 'Austin',
-    state: 'TX',
-    country: 'US',
-    phone: '(512) 340-8800',
-    hours: [
-      { days: 'Mon–Fri', open: '7am', close: '8pm' },
-      { days: 'Sat', open: '9am', close: '3pm' },
-    ],
-    isPublicOnWebsite: true,
-    availableLanguages: ['English', 'Spanish'],
+    locationId: "us-tx-001",
+    name: "HealthCore Austin Central",
+    city: "Austin",
+    stateOrCountry: "TX",
+    country: "US",
+    phone: "(512) 340-8800",
+    averageConsultationFee: {
+      primary_care: 180,
+      chronic_disease: 220,
+      preventive: 150,
+      specialist: 320,
+      womens_health: 240,
+      paediatric: 175,
+      mental_health: 200,
+    },
   },
   {
-    id: 'austinnorth',
-    name: 'HealthCore Austin North',
-    city: 'Austin',
-    state: 'TX',
-    country: 'US',
-    phone: '(512) 340-8810',
-    hours: [
-      { days: 'Mon–Fri', open: '8am', close: '7pm' },
-    ],
-    isPublicOnWebsite: true,
-    availableLanguages: ['English', 'Spanish'],
+    locationId: "us-fl-001",
+    name: "HealthCore Miami",
+    city: "Miami",
+    stateOrCountry: "FL",
+    country: "US",
+    phone: "(305) 510-7700",
+    averageConsultationFee: {
+      primary_care: 195,
+      chronic_disease: 235,
+      preventive: 160,
+      specialist: 340,
+      womens_health: 255,
+      paediatric: 185,
+      mental_health: 215,
+    },
   },
   {
-    id: 'sanantonio',
-    name: 'HealthCore San Antonio',
-    city: 'San Antonio',
-    state: 'TX',
-    country: 'US',
-    phone: '(210) 720-4400',
-    hours: [
-      { days: 'Mon–Fri', open: '8am', close: '6pm' },
-      { days: 'Sat', open: '9am', close: '1pm' },
-    ],
-    isPublicOnWebsite: true,
-    availableLanguages: ['English', 'Spanish'],
-  },
-  {
-    id: 'miami',
-    name: 'HealthCore Miami',
-    city: 'Miami',
-    state: 'FL',
-    country: 'US',
-    phone: '(305) 510-7700',
-    hours: [
-      { days: 'Mon–Fri', open: '7am', close: '8pm' },
-      { days: 'Sat', open: '9am', close: '4pm' },
-    ],
-    isPublicOnWebsite: true,
-    availableLanguages: ['English', 'Spanish'],
-  },
-  {
-    id: 'orlando',
-    name: 'HealthCore Orlando',
-    city: 'Orlando',
-    state: 'FL',
-    country: 'US',
-    phone: '(407) 892-6600',
-    hours: [
-      { days: 'Mon–Fri', open: '8am', close: '6pm' },
-    ],
-    isPublicOnWebsite: true,
-    availableLanguages: ['English', 'Spanish'],
-  },
-  {
-    id: 'atlanta',
-    name: 'HealthCore Atlanta',
-    city: 'Atlanta',
-    state: 'GA',
-    country: 'US',
-    phone: '(404) 330-9900',
-    hours: [
-      { days: 'Mon–Fri', open: '8am', close: '7pm' },
-    ],
-    isPublicOnWebsite: true,
-    availableLanguages: ['English', 'Spanish'],
+    locationId: "us-ga-001",
+    name: "HealthCore Atlanta",
+    city: "Atlanta",
+    stateOrCountry: "GA",
+    country: "US",
+    phone: "(404) 330-9900",
+    averageConsultationFee: {
+      primary_care: 170,
+      chronic_disease: 210,
+      preventive: 145,
+      specialist: 310,
+      womens_health: 230,
+      paediatric: 165,
+      mental_health: 190,
+    },
   },
 ];
 
-/** UK clinics (not public on website per context) */
-export const UK_CLINICS: Clinic[] = [
+export const sampleClaims: Claim[] = [
   {
-    id: 'londoncentral',
-    name: 'HealthCore London Central',
-    city: 'London',
-    state: 'London',
-    country: 'GB',
-    phone: '+44 20 7946 0100',
-    hours: [
-      { days: 'Mon–Fri', open: '8am', close: '7pm' },
-    ],
-    isPublicOnWebsite: false,
-    availableLanguages: ['English'],
+    claimId: "CLM-000001",
+    patientId: "HC-A3F291",
+    locationId: "us-tx-001",
+    serviceType: "primary_care",
+    payerName: "BlueCross",
+    payerId: "BC001",
+    submissionDate: "2025-03-10",
+    claimAmount: 180,
+    status: "approved",
+    resubmitted: false,
+  },
+  {
+    claimId: "CLM-000002",
+    patientId: "HC-B7K442",
+    locationId: "us-fl-001",
+    serviceType: "specialist",
+    payerName: "Aetna",
+    payerId: "AET002",
+    submissionDate: "2025-03-11",
+    claimAmount: 340,
+    status: "denied",
+    denialReason: "missing_authorisation",
+    resubmitted: false,
+  },
+  {
+    claimId: "CLM-000003",
+    patientId: "HC-C2M881",
+    locationId: "us-ga-001",
+    serviceType: "chronic_disease",
+    payerName: "Medicare",
+    payerId: "MED003",
+    submissionDate: "2025-03-12",
+    claimAmount: 210,
+    status: "approved",
+    resubmitted: false,
+  },
+  {
+    claimId: "CLM-000004",
+    patientId: "HC-D9P553",
+    locationId: "us-tx-001",
+    serviceType: "preventive",
+    payerName: "BlueCross",
+    payerId: "BC001",
+    submissionDate: "2025-03-13",
+    claimAmount: 150,
+    status: "denied",
+    denialReason: "coding_error",
+    resubmitted: true,
+  },
+  {
+    claimId: "CLM-000005",
+    patientId: "HC-E4Q117",
+    locationId: "us-fl-001",
+    serviceType: "mental_health",
+    payerName: "Cigna",
+    payerId: "CIG004",
+    submissionDate: "2025-03-14",
+    claimAmount: 215,
+    status: "pending",
+    resubmitted: false,
   },
 ];
 
-/** All clinics combined */
-export const ALL_CLINICS: Clinic[] = [...US_CLINICS, ...UK_CLINICS];
-
-/** Medical services offered by HealthCore */
-export const MEDICAL_SERVICES: MedicalService[] = [
+export const sampleAppointments: Appointment[] = [
   {
-    id: 'primary-care',
-    type: 'Primary Care',
-    name: 'Primary Care & Chronic Disease',
-    description: 'Same-day appointments with primary care physicians. Ongoing management of diabetes, hypertension, and asthma.',
-    availableForNewPatients: true,
-    minAge: 0,
+    appointmentId: "APT-000001",
+    patientId: "HC-A3F291",
+    locationId: "us-tx-001",
+    serviceType: "primary_care",
+    scheduledDate: "2025-03-10",
+    scheduledTime: "09:00",
+    status: "completed",
+    confirmedAt: "2025-03-09T14:00:00Z",
   },
   {
-    id: 'chronic-disease',
-    type: 'Chronic Disease Management',
-    name: 'Chronic Disease Management',
-    description: 'Ongoing management of diabetes, hypertension, and asthma.',
-    availableForNewPatients: true,
-    minAge: 0,
+    appointmentId: "APT-000002",
+    patientId: "HC-F6R228",
+    locationId: "us-fl-001",
+    serviceType: "specialist",
+    scheduledDate: "2025-03-11",
+    scheduledTime: "11:30",
+    status: "no_show",
+    noShowReason: "Patient did not call to cancel",
   },
   {
-    id: 'specialist',
-    type: 'Specialist Consultation',
-    name: 'Specialist Consultations',
-    description: 'Cardiology, endocrinology, pulmonology, and women\'s health. Referrals coordinated within the HealthCore network.',
-    availableForNewPatients: true,
-    minAge: 0,
+    appointmentId: "APT-000003",
+    patientId: "HC-G1S774",
+    locationId: "us-tx-001",
+    serviceType: "chronic_disease",
+    scheduledDate: "2025-03-12",
+    scheduledTime: "14:00",
+    status: "no_show",
+    noShowReason: "Unreachable before appointment",
   },
   {
-    id: 'preventive',
-    type: 'Preventive Health',
-    name: 'Preventive Health & Wellbeing',
-    description: 'Screenings, vaccinations, and annual check-ups. Mental health counselling and psychiatry referrals.',
-    availableForNewPatients: true,
-    minAge: 0,
+    appointmentId: "APT-000004",
+    patientId: "HC-H8T390",
+    locationId: "us-ga-001",
+    serviceType: "preventive",
+    scheduledDate: "2025-03-13",
+    scheduledTime: "10:00",
+    status: "completed",
+    confirmedAt: "2025-03-12T09:30:00Z",
   },
   {
-    id: 'womens-health',
-    type: "Women's Health",
-    name: "Women's Health",
-    description: 'Comprehensive women\'s health services including annual exams, family planning, and menopause management.',
-    availableForNewPatients: true,
-    minAge: 12,
-  },
-  {
-    id: 'paediatric',
-    type: 'Paediatric Care',
-    name: 'Paediatric Care',
-    description: 'Specialised healthcare for children and adolescents.',
-    availableForNewPatients: true,
-    minAge: 0,
-    maxAge: 17,
-  },
-  {
-    id: 'mental-health',
-    type: 'Mental Health',
-    name: 'Mental Health',
-    description: 'Mental health counselling and psychiatry referrals.',
-    availableForNewPatients: true,
-    minAge: 0,
+    appointmentId: "APT-000005",
+    patientId: "HC-I5U661",
+    locationId: "us-fl-001",
+    serviceType: "mental_health",
+    scheduledDate: "2025-03-14",
+    scheduledTime: "16:00",
+    status: "no_show",
+    noShowReason: "Transportation issue reported",
   },
 ];
 
-/** Time-of-day options for the enquiry form */
-export const TIME_OF_DAY_OPTIONS: TimeOfDay[] = [
-  'Morning (7am–12pm)',
-  'Afternoon (12pm–5pm)',
-  'Evening (5pm–8pm)',
+export const sampleClinicians: Clinician[] = [
+  {
+    clinicianId: "CLN-000001",
+    firstName: "Marcus",
+    lastName: "Reid",
+    role: "physician",
+    locationId: "us-tx-001",
+    licenceState: "TX",
+    licenceExpiryDate: "2026-06-30",
+    cmeHoursRequired: 40,
+    cmeHoursLogged: 28,
+    cmeYearStartDate: "2025-01-01",
+  },
+  {
+    clinicianId: "CLN-000002",
+    firstName: "Sandra",
+    lastName: "Flores",
+    role: "nurse_practitioner",
+    locationId: "us-fl-001",
+    licenceState: "FL",
+    licenceExpiryDate: "2025-05-15",
+    cmeHoursRequired: 30,
+    cmeHoursLogged: 6,
+    cmeYearStartDate: "2025-01-01",
+  },
+  {
+    clinicianId: "CLN-000003",
+    firstName: "David",
+    lastName: "Okafor",
+    role: "physician",
+    locationId: "us-ga-001",
+    licenceState: "GA",
+    licenceExpiryDate: "2027-01-01",
+    cmeHoursRequired: 40,
+    cmeHoursLogged: 40,
+    cmeYearStartDate: "2025-01-01",
+  },
 ];
-
-// ──────────────────────────────────────────────
-// Helper / Utility Methods
-// ──────────────────────────────────────────────
-
-/** Get a clinic by its ID */
-export function getClinicById(clinicId: string): Clinic | undefined {
-  return ALL_CLINICS.find((c) => c.id === clinicId);
-}
-
-/** Get public US clinics only */
-export function getPublicClinics(): Clinic[] {
-  return US_CLINICS.filter((c) => c.isPublicOnWebsite);
-}
-
-/** Get a medical service by its type */
-export function getServiceByType(type: ServiceType): MedicalService | undefined {
-  return MEDICAL_SERVICES.find((s) => s.type === type);
-}
-
-/** Calculate age from a date-of-birth string */
-export function calculateAge(dateOfBirth: string): number {
-  const birth = new Date(dateOfBirth);
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDiff = today.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-    age--;
-  }
-  return age;
-}
-
-/** Format a clinic's hours into a readable string */
-export function formatClinicHours(clinic: Clinic): string {
-  return clinic.hours
-    .map((h) => (h.isClosed ? `${h.days}: Closed` : `${h.days} ${h.open}–${h.close}`))
-    .join(' · ');
-}
-
-/** Get the latest closing time for a clinic */
-export function getLatestClosingTime(clinic: Clinic): string {
-  return clinic.hours.reduce((latest, h) => {
-    if (h.isClosed) return latest;
-    return h.close > latest ? h.close : latest;
-  }, '');
-}
-
-/** Create a patient enquiry object from form data */
-export function createPatientEnquiry(data: Omit<PatientEnquiry, 'contactConsent'> & { contactConsent: boolean }): PatientEnquiry {
-  return { ...data };
-}

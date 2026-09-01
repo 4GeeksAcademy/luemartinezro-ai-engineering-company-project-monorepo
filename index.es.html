@@ -359,12 +359,12 @@
             <!-- Collections -->
             <div class="rounded-2xl border border-white/80 bg-white/90 p-6 shadow-panel backdrop-blur">
               <h3 class="font-semibold text-brand-800">1. Manejo de Colecciones</h3>
-              <p class="mb-4 text-sm text-slate-500">Filtrar, ordenar, agrupar, paginar</p>
+              <p class="mb-4 text-sm text-slate-500">Filtrar, ordenar, agrupar</p>
               <div class="grid grid-cols-2 gap-2">
-                <button onclick="runFilterByCountry()" class="rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700">Filtrar US</button>
-                <button onclick="runSortByName()" class="rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700">Ordenar por nombre</button>
-                <button onclick="runGroupByCountry()" class="rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700">Agrupar por pais</button>
-                <button onclick="runPaginate()" class="rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700">Paginar</button>
+                <button onclick="runFilterByLocation()" class="rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700">Filtrar por LOC</button>
+                <button onclick="runFilterByStatus()" class="rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700">Filtrar Inasistencias</button>
+                <button onclick="runSortClaims()" class="rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700">Ordenar reclamaciones</button>
+                <button onclick="runGroupByPayer()" class="rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-700">Agrupar por pagador</button>
               </div>
               <pre id="output-collections" class="mt-4 rounded-xl bg-slate-900 p-3 text-xs text-emerald-300 overflow-x-auto">Haz clic en un boton...</pre>
             </div>
@@ -373,32 +373,32 @@
               <h3 class="font-semibold text-indigo-800">2. Algoritmos de Busqueda</h3>
               <p class="mb-4 text-sm text-slate-500">Busqueda lineal y binaria</p>
               <div class="grid grid-cols-2 gap-2">
-                <button onclick="runLinearSearch()" class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700">Lineal: Austin</button>
-                <button onclick="runBinarySearchNumber()" class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700">Binaria: Buscar 5</button>
-                <button onclick="runBinarySearchString()" class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700">Binaria: Miami</button>
+                <button onclick="runFindClaim()" class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700">Buscar reclamacion</button>
+                <button onclick="runFindClinician()" class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700">Buscar clinico</button>
+                <button onclick="runBinarySearch()" class="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700">Binaria: CLM-005</button>
               </div>
               <pre id="output-search" class="mt-4 rounded-xl bg-slate-900 p-3 text-xs text-emerald-300 overflow-x-auto">Haz clic en un boton...</pre>
             </div>
             <!-- Transformations -->
             <div class="rounded-2xl border border-white/80 bg-white/90 p-6 shadow-panel backdrop-blur">
               <h3 class="font-semibold text-cyan-800">3. Transformaciones</h3>
-              <p class="mb-4 text-sm text-slate-500">Agregaciones y reportes</p>
+              <p class="mb-4 text-sm text-slate-500">Denegaciones, inasistencias, CME</p>
               <div class="grid grid-cols-2 gap-2">
-                <button onclick="runCountByState()" class="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-cyan-800">Contar por estado</button>
-                <button onclick="runSummarizeAges()" class="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-cyan-800">Resumir edades</button>
-                <button onclick="runMinMaxHours()" class="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-cyan-800">Min/Max horario</button>
+                <button onclick="runDenialRate()" class="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-cyan-800">Tasa denegacion</button>
+                <button onclick="runNoShowCost()" class="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-cyan-800">Costo inasistencia</button>
+                <button onclick="runCMEReport()" class="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-cyan-800">Reporte CME</button>
               </div>
               <pre id="output-transformations" class="mt-4 rounded-xl bg-slate-900 p-3 text-xs text-emerald-300 overflow-x-auto">Haz clic en un boton...</pre>
             </div>
             <!-- Validations -->
             <div class="rounded-2xl border border-white/80 bg-white/90 p-6 shadow-panel backdrop-blur">
               <h3 class="font-semibold text-rose-800">4. Validaciones de Negocio</h3>
-              <p class="mb-4 text-sm text-slate-500">Reglas especificas de HealthCore</p>
+              <p class="mb-4 text-sm text-slate-500">Reclamaciones, clinicos, umbrales</p>
               <div class="grid grid-cols-2 gap-2">
-                <button onclick="runValidateEnquiry()" class="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700">Validar consulta</button>
-                <button onclick="runValidateName()" class="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700">Nombre invalido</button>
-                <button onclick="runValidateInsurance()" class="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700">Seguro faltante</button>
-                <button onclick="runValidatePaediatric()" class="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700">Pediatrico (adulto)</button>
+                <button onclick="runValidateClaim()" class="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700">Validar reclamacion</button>
+                <button onclick="runValidateClinician()" class="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700">Validar clinico</button>
+                <button onclick="runThresholdDenial()" class="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700">Denegacion > 8%?</button>
+                <button onclick="runThresholdNoShow()" class="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-700">Inasistencia > 20%?</button>
               </div>
               <pre id="output-validations" class="mt-4 rounded-xl bg-slate-900 p-3 text-xs text-emerald-300 overflow-x-auto">Haz clic en un boton...</pre>
             </div>
@@ -420,45 +420,40 @@
 
     <script type="module">
       // ─────────────────────────────────────────────────────────────
-      // Import all utility modules
+      // Import all Milestone 2 modules
       // ─────────────────────────────────────────────────────────────
       import {
-        US_CLINICS, UK_CLINICS, ALL_CLINICS, MEDICAL_SERVICES,
-        calculateAge, getClinicById, getPublicClinics,
-      } from './src/types/models.js';
+        sampleClaims, sampleAppointments, sampleClinicians, sampleLocations,
+      } from './src/types/models.ts';
 
       import {
-        filterBy, filterByProperty, filterByValues,
-        sortBy, sortByMultiple,
-        groupBy, groupByEntries,
-        paginate, countBy, uniqueValues,
-      } from './src/utils/collections.js';
+        filterClaims, filterAppointmentsByStatus,
+        sortClaimsById, sortAppointmentsByDate,
+        groupClaimsBy,
+      } from './src/utils/collections.ts';
 
       import {
-        linearSearch, linearSearchAll, linearSearchByProperty,
-        binarySearchNumber, binarySearchString, binarySearch,
-      } from './src/utils/search.js';
+        findClaimById, findClinicianById, binarySearchClaimById,
+      } from './src/utils/search.ts';
 
       import {
-        countByCategory, summarizeNumeric, summarizeProperty,
-        min, max, minBy, maxBy,
-        sum, average, frequencyReport,
-      } from './src/utils/transformations.js';
+        calculateDenialRate, denialRateByPayer, denialRateByLocation,
+        flagHighDenialPayers,
+        calculateNoShowCost, noShowRateByLocation, flagHighNoShowLocations,
+        generateCMEReport, getCliniciansAtRisk, getCliniciansWithExpiringLicences,
+      } from './src/utils/transformations.ts';
 
       import {
-        validatePatientEnquiry, validateName, validatePhone,
-        validateInsurance, validatePaediatricCare,
-        validateDateOfBirth, validateEmail, validateHealthConcern,
-        validateConsent, validatePatientId, checkEveningClinicAvailability,
-        validatePreferredDate,
-      } from './src/utils/validations.js';
+        validateClaim, validateClinician,
+        isDenialRateAboveThreshold, isNoShowRateAboveThreshold,
+      } from './src/utils/validations.ts';
 
       // ─────────────────────────────────────────────────────────────
       // Runtime status
       // ─────────────────────────────────────────────────────────────
       const statusEl = document.getElementById('runtime-status');
       if (statusEl) {
-        statusEl.textContent = `✓ Cargado: ${ALL_CLINICS.length} clinicas, ${MEDICAL_SERVICES.length} servicios`;
+        statusEl.textContent = `✓ Cargado: ${sampleClaims.length} reclamaciones, ${sampleAppointments.length} citas, ${sampleClinicians.length} clínicos`;
       }
 
       // ─────────────────────────────────────────────────────────────
@@ -480,162 +475,138 @@
       }
 
       // ─────────────────────────────────────────────────────────────
-      // SECTION 1: Collection Management
+      // SECTION 1: Collection Management (Milestone 2)
       // ─────────────────────────────────────────────────────────────
-      window.runFilterByCountry = function () {
-        const result = filterByProperty(ALL_CLINICS, 'country', 'US');
+      window.runFilterByLocation = function () {
+        const result = filterClaims(sampleClaims, { locationId: 'L001' });
         showOutput('output-collections',
-          `filterByProperty(clinics, 'country', 'US') → ${result.length} clinicas`,
-          result.map((c) => ({ name: c.name, city: c.city, state: c.state }))
+          `filterClaims(sampleClaims, { locationId: "L001" }) → ${result.length} reclamaciones`,
+          result.map((c) => ({ claimId: c.claimId, pagador: c.payerName, monto: c.claimAmount, estado: c.status }))
         );
       };
 
-      window.runSortByName = function () {
-        const result = sortBy(ALL_CLINICS, 'name', 'asc');
+      window.runFilterByStatus = function () {
+        const result = filterAppointmentsByStatus(sampleAppointments, ['no_show']);
         showOutput('output-collections',
-          `sortBy(clinics, 'name', 'asc')`,
-          result.map((c, i) => ({ '#': i + 1, name: c.name, city: c.city }))
+          `filterAppointmentsByStatus(citas, [no_show]) → ${result.length} inasistencias`,
+          result.map((a) => ({ citaId: a.appointmentId, fecha: a.scheduledDate, hora: a.scheduledTime }))
         );
       };
 
-      window.runGroupByCountry = function () {
-        const result = groupBy(ALL_CLINICS, (c) => c.country);
-        const output = {};
-        for (const [key, items] of result.entries()) {
-          output[key] = items.map((c) => c.name);
-        }
-        showOutput('output-collections', 'groupBy(clinics, country)', output);
-      };
-
-      window.runPaginate = function () {
-        const result = paginate(ALL_CLINICS, 1, 3);
+      window.runSortClaims = function () {
+        const result = sortClaimsById(sampleClaims, 'asc');
         showOutput('output-collections',
-          `paginate(clinics, page=1, size=3)`,
-          result.map((c) => ({ name: c.name, city: c.city }))
+          `sortClaimsById(reclamaciones, 'asc')`,
+          result.map((c, i) => ({ '#': i + 1, claimId: c.claimId, pagador: c.payerName }))
+        );
+      };
+
+      window.runGroupByPayer = function () {
+        const result = groupClaimsBy(sampleClaims, 'payerName');
+        showOutput('output-collections', 'groupClaimsBy(reclamaciones, "payerName")',
+          Object.fromEntries(Object.entries(result).map(([k, v]) => [k, v.length]))
         );
       };
 
       // ─────────────────────────────────────────────────────────────
-      // SECTION 2: Search
+      // SECTION 2: Search (Milestone 2)
       // ─────────────────────────────────────────────────────────────
-      window.runLinearSearch = function () {
-        const result = linearSearchByProperty(ALL_CLINICS, 'city', 'Austin');
+      window.runFindClaim = function () {
+        const targetId = 'CLM-003';
+        const result = findClaimById(sampleClaims, targetId);
         showOutput('output-search',
-          `linearSearchByProperty(clinics, 'city', 'Austin') → found=${result.found}`,
-          result.found
-            ? { name: result.item.name, city: result.item.city }
-            : 'Not found'
+          `findClaimById(reclamaciones, "${targetId}")`,
+          result ?? 'No encontrado'
         );
       };
 
-      window.runBinarySearchNumber = function () {
-        const data = [1, 3, 5, 7, 9, 11, 13];
-        const result = binarySearchNumber(data, 5);
+      window.runFindClinician = function () {
+        const targetId = 'DOC-002';
+        const result = findClinicianById(sampleClinicians, targetId);
         showOutput('output-search',
-          `binarySearchNumber([${data.join(', ')}], target=5)`,
-          result
+          `findClinicianById(clinicos, "${targetId}")`,
+          result ?? 'No encontrado'
         );
       };
 
-      window.runBinarySearchString = function () {
-        const cities = [...new Set(ALL_CLINICS.map((c) => c.city))].sort();
-        const target = 'Miami';
-        const result = binarySearchString(cities, target);
+      window.runBinarySearch = function () {
+        const sorted = sortClaimsById(sampleClaims, 'asc');
+        const target = 'CLM-005';
+        const idx = binarySearchClaimById(sorted, target);
         showOutput('output-search',
-          `binarySearchString(cities, "${target}") → found=${result.found}`,
-          { sortedCities: cities, target, result }
+          `binarySearchClaimById(ordenadas, "${target}") → indice=${idx}`,
+          idx >= 0 ? sorted[idx] : 'No encontrado'
         );
       };
 
       // ─────────────────────────────────────────────────────────────
-      // SECTION 3: Transformations
+      // SECTION 3: Transformations (Milestone 2)
       // ─────────────────────────────────────────────────────────────
-      window.runCountByState = function () {
-        const result = countByCategory(ALL_CLINICS, (c) => c.state);
+      window.runDenialRate = function () {
+        const rate = calculateDenialRate(sampleClaims);
+        const byPayer = denialRateByPayer(sampleClaims);
+        const flagged = flagHighDenialPayers(sampleClaims);
         showOutput('output-transformations',
-          'countByCategory(clinics, state)',
-          result
+          'Calculadora de Tasa de Denegación',
+          { tasaGeneral: `${rate}%`, porPagador: byPayer, pagadoresMarcados: flagged }
         );
       };
 
-      window.runSummarizeAges = function () {
-        const ages = [25, 34, 45, 60, 18, 72, 41, 55, 30, 22, 67, 38];
-        const items = ages.map((age, i) => ({ id: i + 1, age }));
-        const result = summarizeNumeric(items, 'Patient Ages', (p) => p.age);
+      window.runNoShowCost = function () {
+        const location = sampleLocations[0];
+        const cost = calculateNoShowCost(sampleAppointments, location, '2025-03-16');
+        const byLoc = noShowRateByLocation(sampleAppointments);
+        const flaggedLocs = flagHighNoShowLocations(sampleAppointments);
         showOutput('output-transformations',
-          'summarizeNumeric(ages, n=12)',
-          result
+          'Estimador de Costo por Inasistencia',
+          { costeTotal: cost, tasasPorUbicacion: byLoc, ubicacionesMarcadas: flaggedLocs }
         );
       };
 
-      window.runMinMaxHours = function () {
-        const closingPm = ALL_CLINICS.map((c) => {
-          const latest = c.hours.reduce((maxH, h) => {
-            if (h.isClosed) return maxH;
-            const num = parseInt(h.close.match(/(\d+)/)?.[1] || '0', 10);
-            const pm = h.close.includes('pm');
-            return Math.max(maxH, pm ? (num === 12 ? 12 : num + 12) : num);
-          }, 0);
-          return { name: c.name, city: c.city, latestClosing: latest };
-        });
-        const minItem = minBy(closingPm, (c) => c.latestClosing);
-        const maxItem = maxBy(closingPm, (c) => c.latestClosing);
+      window.runCMEReport = function () {
+        const report = generateCMEReport(sampleClinicians, '2025-03-16');
+        const atRisk = getCliniciansAtRisk(sampleClinicians, '2025-03-16');
+        const expiring = getCliniciansWithExpiringLicences(sampleClinicians, '2025-03-16', 90);
         showOutput('output-transformations',
-          'minBy / maxBy(clinics, latest closing hour)',
-          { earliestClosing: minItem, latestClosing: maxItem }
+          'Seguidor de Cumplimiento CME',
+          { reporte: report, enRiesgo: atRisk.length, licenciasPorVencer: expiring.length }
         );
       };
 
       // ─────────────────────────────────────────────────────────────
-      // SECTION 4: Business Validations
+      // SECTION 4: Validations (Milestone 2)
       // ─────────────────────────────────────────────────────────────
-      const SAMPLE_ENQUIRY = {
-        firstName: 'Ana',
-        lastName: 'García',
-        dateOfBirth: '1990-05-15',
-        email: 'ana.garcia@example.com',
-        phone: '+1 512 555 0191',
-        preferredLanguage: 'Spanish',
-        preferredClinic: 'austincentral',
-        preferredDate: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0],
-        preferredTime: 'Morning (7am–12pm)',
-        serviceType: 'Primary Care',
-        isNewPatient: 'Yes',
-        hasInsurance: 'Yes',
-        insurance: { provider: 'BlueCross', memberId: 'BC123456' },
-        healthConcern: 'I have been experiencing persistent lower back pain for the past two weeks.',
-        contactConsent: true,
-      };
-
-      window.runValidateEnquiry = function () {
-        const result = validatePatientEnquiry(SAMPLE_ENQUIRY);
+      window.runValidateClaim = function () {
+        const result = validateClaim(sampleClaims[0], sampleLocations.map((l) => l.locationId));
         showOutput('output-validations',
-          `validatePatientEnquiry(valid sample) → valid=${result.valid}`,
+          `validateClaim(CLM-001) → valido=${result.valid}`,
           result
         );
       };
 
-      window.runValidateName = function () {
-        const result = validateName('A', 'first_name');
+      window.runValidateClinician = function () {
+        const result = validateClinician(sampleClinicians[0]);
         showOutput('output-validations',
-          'validateName("A", "first_name") — demasiado corto',
+          `validateClinician(DOC-001) → valido=${result.valid}`,
           result
         );
       };
 
-      window.runValidateInsurance = function () {
-        const errors = validateInsurance('Yes', '', '');
+      window.runThresholdDenial = function () {
+        const rate = calculateDenialRate(sampleClaims);
+        const result = isDenialRateAboveThreshold(rate);
         showOutput('output-validations',
-          'validateInsurance(Yes, "", "")',
-          errors.length > 0 ? errors : 'Sin errores'
+          `isDenialRateAboveThreshold(${rate.toFixed(2)}%, umbral=8) → ${result}`,
+          { tasaDenegacion: rate, umbral: 8, superaUmbral: result }
         );
       };
 
-      window.runValidatePaediatric = function () {
-        const result = validatePaediatricCare('Paediatric Care', '1990-05-15');
+      window.runThresholdNoShow = function () {
+        const locs = noShowRateByLocation(sampleAppointments);
+        const result = isNoShowRateAboveThreshold(locs['L001'] ?? 0);
         showOutput('output-validations',
-          'validatePaediatricCare(Paediatric, adulto)',
-          result
+          `isNoShowRateAboveThreshold(L001 tasa=${locs['L001']?.toFixed(2) ?? 0}%, umbral=20)`,
+          { tasaLocal: locs['L001'], umbral: 20, superaUmbral: result }
         );
       };
     </script>
