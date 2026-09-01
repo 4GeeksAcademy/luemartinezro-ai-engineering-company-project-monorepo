@@ -1,762 +1,140 @@
 /**
- * HealthCore — Business Validations
+ * HealthCore — Milestone 2: Validation Utilities
  *
- * Functions that validate data complies with HealthCore's specific business rules
- * before being processed or stored. Covers patient enquiries, clinic data,
- * and entity integrity checks.
+ * Valida reclamaciones (claims), clínicos (clinicians) y comparadores
+ * de umbrales para denial rate y no-show rate.
  *
  * @package @repo/shared-types
  */
 
-import {
-  PatientEnquiry,
-  Patient,
-  Clinic,
-  ValidationResult,
-  ValidationErrors,
-} from '../types/models';
-import { calculateAge } from '../types/models';
+import { Claim, Clinician, ClinicianRole } from "../types/models";
 
 // ──────────────────────────────────────────────
-// Name Validation
+// Claim Validation
 // ──────────────────────────────────────────────
 
 /**
- * Validate a person's name (first or last).
- * Rules: 2–50 characters, letters only (including accented: áéíóúñü).
+ * Validate a claim against business rules.
+ *
+ * Rules:
+ *  - claimAmount > 0
+ *  - submissionDate not in the future
+ *  - locationId is in knownLocationIds
+ *  - if status === "denied", denialReason must be present and non-empty
+ *  - patientId matches pattern HC-XXXXXX (X = digit)
  */
-export function validateName(name: string, fieldName: string): ValidationResult {
-  if (!name || name.trim().length < 2 || name.trim().length > 50) {
-    return {
-      valid: false,
-      field: fieldName,
-      message:
-        fieldName === 'first_name'
-          ? 'First name must contain only letters and be at least 2 characters'
-          : 'Last name must contain only letters and be at least 2 characters',
-    };
+export function validateClaim(
+  claim: Claim,
+  knownLocationIds: string[],
+): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  // claimAmount > 0
+  if (claim.claimAmount <= 0) {
+    errors.push("claimAmount must be greater than 0");
   }
 
-  const lettersOnlyRegex = /^[A-Za-zÀ-ÿÑñÜü\s'-]+$/;
-  if (!lettersOnlyRegex.test(name.trim())) {
-    return {
-      valid: false,
-      field: fieldName,
-      message:
-        fieldName === 'first_name'
-          ? 'First name must contain only letters and be at least 2 characters'
-          : 'Last name must contain only letters and be at least 2 characters',
-    };
-  }
-
-  return { valid: true, field: fieldName };
-}
-
-// ──────────────────────────────────────────────
-// Date of Birth Validation
-// ──────────────────────────────────────────────
-
-/**
- * Validate date of birth.
- * Rules: Cannot be a future date. Patient must be between 0 and 120 years old.
- */
-export function validateDateOfBirth(dateOfBirth: string): ValidationResult {
-  if (!dateOfBirth) {
-    return {
-      valid: false,
-      field: 'date_of_birth',
-      message: 'Enter a valid date of birth. Patient must be between 0 and 120 years old',
-    };
-  }
-
-  const birthDate = new Date(dateOfBirth);
+  // submissionDate not in the future
+  const submission = new Date(claim.submissionDate);
   const today = new Date();
-
-  if (isNaN(birthDate.getTime())) {
-    return {
-      valid: false,
-      field: 'date_of_birth',
-      message: 'Enter a valid date of birth. Patient must be between 0 and 120 years old',
-    };
+  today.setUTCHours(23, 59, 59, 999);
+  if (submission > today) {
+    errors.push("submissionDate cannot be in the future");
   }
 
-  if (birthDate > today) {
-    return {
-      valid: false,
-      field: 'date_of_birth',
-      message: 'Enter a valid date of birth. Patient must be between 0 and 120 years old',
-    };
+  // locationId in knownLocationIds
+  if (!knownLocationIds.includes(claim.locationId)) {
+    errors.push(`locationId "${claim.locationId}" is not a known location`);
   }
 
-  const age = calculateAge(dateOfBirth);
-  if (age < 0 || age > 120) {
-    return {
-      valid: false,
-      field: 'date_of_birth',
-      message: 'Enter a valid date of birth. Patient must be between 0 and 120 years old',
-    };
+  // if denied, denialReason required
+  if (claim.status === "denied" && (!claim.denialReason || claim.denialReason.trim() === "")) {
+    errors.push("denialReason is required when status is denied");
   }
 
-  return { valid: true, field: 'date_of_birth' };
+  // patientId matches HC-XXXXXX
+  const patientIdRegex = /^HC-\d{6}$/;
+  if (!patientIdRegex.test(claim.patientId)) {
+    errors.push('patientId must match format HC-XXXXXX (e.g. HC-123456)');
+  }
+
+  return { valid: errors.length === 0, errors };
 }
 
 // ──────────────────────────────────────────────
-// Email Validation
+// Clinician Validation
 // ──────────────────────────────────────────────
 
 /**
- * Validate email address format.
+ * Validate a clinician record.
+ *
+ * Rules:
+ *  - cmeHoursRequired >= 0
+ *  - cmeHoursLogged >= 0
+ *  - licenceExpiryDate is a valid date, not in the past
+ *  - role is one of the defined ClinicianRole values
  */
-export function validateEmail(email: string): ValidationResult {
-  if (!email) {
-    return {
-      valid: false,
-      field: 'email',
-      message: 'Enter a valid email address (example: name@provider.com)',
-    };
+export function validateClinician(
+  clinician: Clinician,
+): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  const validRoles: ClinicianRole[] = [
+    "physician",
+    "nurse_practitioner",
+    "nurse",
+    "medical_assistant",
+  ];
+
+  // cmeHoursRequired >= 0
+  if (clinician.cmeHoursRequired < 0) {
+    errors.push("cmeHoursRequired must be >= 0");
   }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email.trim())) {
-    return {
-      valid: false,
-      field: 'email',
-      message: 'Enter a valid email address (example: name@provider.com)',
-    };
+  // cmeHoursLogged >= 0
+  if (clinician.cmeHoursLogged < 0) {
+    errors.push("cmeHoursLogged must be >= 0");
   }
 
-  return { valid: true, field: 'email' };
-}
-
-// ──────────────────────────────────────────────
-// Phone Validation
-// ──────────────────────────────────────────────
-
-/**
- * Validate phone number.
- * Rules: Must start with country code (e.g., +1 305 555 0191 or +34 612 345 678).
- */
-export function validatePhone(phone: string): ValidationResult {
-  if (!phone) {
-    return {
-      valid: false,
-      field: 'phone',
-      message: 'Phone must include a country code (example: +1 305 555 0191)',
-    };
-  }
-
-  const phoneRegex = /^\+\d{1,3}\s?\d{1,4}\s?\d{3,4}\s?\d{3,4}$/;
-  if (!phoneRegex.test(phone.trim())) {
-    return {
-      valid: false,
-      field: 'phone',
-      message: 'Phone must include a country code (example: +1 305 555 0191)',
-    };
-  }
-
-  return { valid: true, field: 'phone' };
-}
-
-// ──────────────────────────────────────────────
-// Preferred Date Validation
-// ──────────────────────────────────────────────
-
-/**
- * Check if a date is at least 1 business day from today.
- * Business days exclude weekends (Saturday, Sunday).
- */
-export function isAtLeastOneBusinessDayFromToday(dateStr: string): boolean {
+  // licenceExpiryDate valid — present or future
+  const expiry = new Date(clinician.licenceExpiryDate);
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const targetDate = new Date(dateStr);
-  targetDate.setHours(0, 0, 0, 0);
-
-  if (targetDate <= today) return false;
-
-  // Count business days between today+1 and targetDate
-  let businessDays = 0;
-  const checkDate = new Date(today);
-  checkDate.setDate(checkDate.getDate() + 1);
-
-  while (checkDate <= targetDate) {
-    const dayOfWeek = checkDate.getDay();
-    // 0 = Sunday, 6 = Saturday
-    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-      businessDays++;
-    }
-    checkDate.setDate(checkDate.getDate() + 1);
+  today.setUTCHours(0, 0, 0, 0);
+  if (isNaN(expiry.getTime())) {
+    errors.push("licenceExpiryDate is not a valid date");
+  } else if (expiry < today) {
+    errors.push("licenceExpiryDate must be today or in the future");
   }
 
-  return businessDays >= 1;
-}
-
-/**
- * Validate preferred appointment date.
- * Rules: At least 1 business day from today. No more than 60 days ahead.
- */
-export function validatePreferredDate(dateStr: string): ValidationResult {
-  if (!dateStr) {
-    return {
-      valid: false,
-      field: 'preferred_date',
-      message:
-        'Select a date at least 1 business day from today and no more than 60 days ahead',
-    };
+  // role validation
+  if (!validRoles.includes(clinician.role)) {
+    errors.push(
+      `role must be one of: ${validRoles.join(", ")}`,
+    );
   }
 
-  const targetDate = new Date(dateStr);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  if (isNaN(targetDate.getTime())) {
-    return {
-      valid: false,
-      field: 'preferred_date',
-      message:
-        'Select a date at least 1 business day from today and no more than 60 days ahead',
-    };
-  }
-
-  // Check not in the past
-  if (targetDate <= today) {
-    return {
-      valid: false,
-      field: 'preferred_date',
-      message:
-        'Select a date at least 1 business day from today and no more than 60 days ahead',
-    };
-  }
-
-  // Check at least 1 business day
-  if (!isAtLeastOneBusinessDayFromToday(dateStr)) {
-    return {
-      valid: false,
-      field: 'preferred_date',
-      message:
-        'Select a date at least 1 business day from today and no more than 60 days ahead',
-    };
-  }
-
-  // Check no more than 60 days ahead
-  const maxDate = new Date(today);
-  maxDate.setDate(maxDate.getDate() + 60);
-  if (targetDate > maxDate) {
-    return {
-      valid: false,
-      field: 'preferred_date',
-      message:
-        'Select a date at least 1 business day from today and no more than 60 days ahead',
-    };
-  }
-
-  return { valid: true, field: 'preferred_date' };
+  return { valid: errors.length === 0, errors };
 }
 
 // ──────────────────────────────────────────────
-// Service Type + Age Validation (Paediatric Care)
+// Threshold Helpers
 // ──────────────────────────────────────────────
 
 /**
- * Validate that Paediatric Care is only available for patients under 18.
+ * Check if a denial rate exceeds the given threshold (default 8%).
  */
-export function validatePaediatricCare(
-  serviceType: string,
-  dateOfBirth: string,
-): ValidationResult {
-  if (serviceType !== 'Paediatric Care') {
-    return { valid: true, field: 'service_type' };
-  }
-
-  const age = calculateAge(dateOfBirth);
-  if (age >= 18) {
-    return {
-      valid: false,
-      field: 'service_type',
-      message:
-        'Paediatric Care is available for patients under 18. Please check the date of birth or select a different service.',
-    };
-  }
-
-  return { valid: true, field: 'service_type' };
-}
-
-// ──────────────────────────────────────────────
-// Insurance Validation
-// ──────────────────────────────────────────────
-
-/**
- * Validate insurance provider name.
- * Rules: Required if hasInsurance is Yes. Max 100 characters.
- */
-export function validateInsuranceProvider(provider: string): ValidationResult {
-  if (!provider || provider.trim().length === 0) {
-    return {
-      valid: false,
-      field: 'insurance_provider',
-      message: 'Please enter your insurance provider name',
-    };
-  }
-
-  if (provider.trim().length > 100) {
-    return {
-      valid: false,
-      field: 'insurance_provider',
-      message: 'Insurance provider name must not exceed 100 characters',
-    };
-  }
-
-  return { valid: true, field: 'insurance_provider' };
+export function isDenialRateAboveThreshold(
+  rate: number,
+  threshold: number = 8,
+): boolean {
+  return rate > threshold;
 }
 
 /**
- * Validate insurance member ID.
- * Rules: 6–20 alphanumeric characters.
+ * Check if a no-show rate exceeds the given threshold (default 20%).
  */
-export function validateInsuranceMemberId(memberId: string): ValidationResult {
-  if (!memberId || memberId.trim().length === 0) {
-    return {
-      valid: false,
-      field: 'insurance_member_id',
-      message: 'Member ID must be between 6 and 20 alphanumeric characters',
-    };
-  }
-
-  const memberIdRegex = /^[A-Za-z0-9]{6,20}$/;
-  if (!memberIdRegex.test(memberId.trim())) {
-    return {
-      valid: false,
-      field: 'insurance_member_id',
-      message: 'Member ID must be between 6 and 20 alphanumeric characters',
-    };
-  }
-
-  return { valid: true, field: 'insurance_member_id' };
-}
-
-/**
- * Validate all insurance fields together.
- */
-export function validateInsurance(
-  hasInsurance: string,
-  provider?: string,
-  memberId?: string,
-): ValidationResult[] {
-  const errors: ValidationResult[] = [];
-
-  if (hasInsurance !== 'Yes') {
-    return errors;
-  }
-
-  const providerResult = validateInsuranceProvider(provider ?? '');
-  if (!providerResult.valid) errors.push(providerResult);
-
-  const memberIdResult = validateInsuranceMemberId(memberId ?? '');
-  if (!memberIdResult.valid) errors.push(memberIdResult);
-
-  return errors;
-}
-
-// ──────────────────────────────────────────────
-// Health Concern Validation
-// ──────────────────────────────────────────────
-
-/**
- * Validate health concern description.
- * Rules: 20–500 characters.
- */
-export function validateHealthConcern(concern: string): ValidationResult {
-  if (!concern) {
-    return {
-      valid: false,
-      field: 'health_concern',
-      message: 'Please describe your health concern in at least 20 characters',
-    };
-  }
-
-  const trimmed = concern.trim();
-  if (trimmed.length < 20) {
-    return {
-      valid: false,
-      field: 'health_concern',
-      message: `Please describe your health concern in at least 20 characters (${
-        20 - trimmed.length
-      } characters remaining)`,
-    };
-  }
-
-  if (trimmed.length > 500) {
-    return {
-      valid: false,
-      field: 'health_concern',
-      message: 'Health concern description must not exceed 500 characters',
-    };
-  }
-
-  return { valid: true, field: 'health_concern' };
-}
-
-// ──────────────────────────────────────────────
-// Consent Validation
-// ──────────────────────────────────────────────
-
-/**
- * Validate contact consent checkbox.
- */
-export function validateConsent(consented: boolean): ValidationResult {
-  if (!consented) {
-    return {
-      valid: false,
-      field: 'contact_consent',
-      message: 'You must consent to being contacted before submitting this form',
-    };
-  }
-
-  return { valid: true, field: 'contact_consent' };
-}
-
-// ──────────────────────────────────────────────
-// Returning Patient Validation
-// ──────────────────────────────────────────────
-
-/**
- * Validate Patient ID for returning patients.
- * Format: HC- followed by 6 alphanumeric characters (e.g., HC-A3F291).
- */
-export function validatePatientId(patientId: string): ValidationResult {
-  if (!patientId || patientId.trim().length === 0) {
-    return { valid: false, field: 'patient_id', message: 'Please enter your Patient ID' };
-  }
-
-  const patientIdRegex = /^HC-[A-Za-z0-9]{6}$/;
-  if (!patientIdRegex.test(patientId.trim())) {
-    return {
-      valid: false,
-      field: 'patient_id',
-      message: 'Patient ID must follow the format HC-XXXXXX (e.g., HC-A3F291)',
-    };
-  }
-
-  return { valid: true, field: 'patient_id' };
-}
-
-// ──────────────────────────────────────────────
-// Evening Time + Clinic Hours Warning
-// ──────────────────────────────────────────────
-
-/**
- * Check if a clinic is open during the evening (past 5pm).
- * Returns a warning if the clinic closes at or before 6pm.
- */
-export function checkEveningClinicAvailability(
-  preferredTime: string,
-  clinic: Clinic | undefined,
-): ValidationResult | null {
-  if (!preferredTime.includes('Evening') || !clinic) {
-    return null;
-  }
-
-  // Check the latest closing time across all hours
-  const latestClose = clinic.hours.reduce((latest, h) => {
-    if (h.isClosed) return latest;
-    // Parse closing time (e.g., "8pm", "6pm", "1pm")
-    const closeHour = parseInt(h.close.replace(/(\d+)(am|pm)/i, '$1'), 10);
-    const isPM = h.close.toLowerCase().includes('pm');
-    const hour24 = isPM && closeHour !== 12 ? closeHour + 12 : closeHour;
-    return Math.max(latest, hour24);
-  }, 0);
-
-  // If the clinic closes at or before 6pm (18:00), it's unlikely to accommodate evening visits
-  if (latestClose <= 18) {
-    return {
-      valid: true,
-      field: 'preferred_time',
-      message: `Warning: ${clinic.name} closes at ${latestClose > 12 ? latestClose - 12 : latestClose}pm on most days. Evening availability may be limited.`,
-    };
-  }
-
-  if (latestClose <= 19) {
-    return {
-      valid: true,
-      field: 'preferred_time',
-      message: `Note: ${clinic.name} closes at ${latestClose > 12 ? latestClose - 12 : latestClose}pm. Please verify evening appointment availability.`,
-    };
-  }
-
-  return null;
-}
-
-// ──────────────────────────────────────────────
-// Full Patient Enquiry Validation
-// ──────────────────────────────────────────────
-
-/**
- * Validate all fields of a patient enquiry.
- * Returns a ValidationErrors object with all field-level errors.
- */
-export function validatePatientEnquiry(
-  data: Partial<PatientEnquiry>,
-): ValidationErrors {
-  const errors: ValidationResult[] = [];
-
-  // Required field checks
-  if (!data.firstName) {
-    errors.push(validateName('', 'first_name'));
-  } else {
-    errors.push(validateName(data.firstName, 'first_name'));
-  }
-
-  if (!data.lastName) {
-    errors.push(validateName('', 'last_name'));
-  } else {
-    errors.push(validateName(data.lastName, 'last_name'));
-  }
-
-  // Date of birth
-  if (!data.dateOfBirth) {
-    errors.push({
-      valid: false,
-      field: 'date_of_birth',
-      message: 'Enter a valid date of birth. Patient must be between 0 and 120 years old',
-    });
-  } else {
-    errors.push(validateDateOfBirth(data.dateOfBirth));
-  }
-
-  // Email
-  if (!data.email) {
-    errors.push({
-      valid: false,
-      field: 'email',
-      message: 'Enter a valid email address (example: name@provider.com)',
-    });
-  } else {
-    errors.push(validateEmail(data.email));
-  }
-
-  // Phone
-  if (!data.phone) {
-    errors.push({
-      valid: false,
-      field: 'phone',
-      message: 'Phone must include a country code (example: +1 305 555 0191)',
-    });
-  } else {
-    errors.push(validatePhone(data.phone));
-  }
-
-  // Preferred language
-  if (!data.preferredLanguage) {
-    errors.push({
-      valid: false,
-      field: 'preferred_language',
-      message: 'Select your preferred language',
-    });
-  }
-
-  // Preferred clinic
-  if (!data.preferredClinic) {
-    errors.push({
-      valid: false,
-      field: 'preferred_clinic',
-      message: 'Select the clinic you would like to visit',
-    });
-  }
-
-  // Preferred date
-  if (!data.preferredDate) {
-    errors.push({
-      valid: false,
-      field: 'preferred_date',
-      message:
-        'Select a date at least 1 business day from today and no more than 60 days ahead',
-    });
-  } else {
-    errors.push(validatePreferredDate(data.preferredDate));
-  }
-
-  // Preferred time
-  if (!data.preferredTime) {
-    errors.push({
-      valid: false,
-      field: 'preferred_time',
-      message: 'Select your preferred time of day',
-    });
-  }
-
-  // Service type
-  if (!data.serviceType) {
-    errors.push({
-      valid: false,
-      field: 'service_type',
-      message: 'Select the type of care you are looking for',
-    });
-  } else if (data.dateOfBirth) {
-    errors.push(validatePaediatricCare(data.serviceType, data.dateOfBirth));
-  }
-
-  // New patient status
-  if (!data.isNewPatient) {
-    errors.push({
-      valid: false,
-      field: 'new_patient',
-      message: 'Please indicate whether this is your first visit to HealthCore',
-    });
-  }
-
-  // Insurance
-  if (!data.hasInsurance) {
-    errors.push({
-      valid: false,
-      field: 'has_insurance',
-      message: 'Please indicate whether you have health insurance',
-    });
-  } else if (data.hasInsurance === 'Yes') {
-    errors.push(...validateInsurance('Yes', data.insurance?.provider, data.insurance?.memberId));
-  }
-
-  // Health concern
-  if (!data.healthConcern) {
-    errors.push({
-      valid: false,
-      field: 'health_concern',
-      message: 'Please describe your health concern in at least 20 characters',
-    });
-  } else {
-    errors.push(validateHealthConcern(data.healthConcern));
-  }
-
-  // Contact consent
-  if (!data.contactConsent) {
-    errors.push({
-      valid: false,
-      field: 'contact_consent',
-      message: 'You must consent to being contacted before submitting this form',
-    });
-  }
-
-  const validErrors = errors.filter((e) => !e.valid);
-  return {
-    valid: validErrors.length === 0,
-    errors: validErrors,
-  };
-}
-
-// ──────────────────────────────────────────────
-// General Entity Validation
-// ──────────────────────────────────────────────
-
-/**
- * Validate that a required string field is non-empty within length limits.
- */
-export function validateRequiredString(
-  value: string | undefined | null,
-  fieldName: string,
-  minLength: number,
-  maxLength: number,
-  message: string,
-): ValidationResult {
-  if (!value || value.trim().length < minLength || value.trim().length > maxLength) {
-    return { valid: false, field: fieldName, message };
-  }
-  return { valid: true, field: fieldName };
-}
-
-/**
- * Validate that a clinic has all required fields.
- */
-export function validateClinic(clinic: Clinic): ValidationResult[] {
-  const errors: ValidationResult[] = [];
-
-  if (!clinic.id) {
-    errors.push({
-      valid: false,
-      field: 'id',
-      message: 'Clinic must have an ID',
-    });
-  }
-
-  if (!clinic.name || clinic.name.trim().length < 2) {
-    errors.push({
-      valid: false,
-      field: 'name',
-      message: 'Clinic must have a valid name',
-    });
-  }
-
-  if (!clinic.phone) {
-    errors.push({
-      valid: false,
-      field: 'phone',
-      message: 'Clinic must have a phone number',
-    });
-  }
-
-  if (!clinic.hours || clinic.hours.length === 0) {
-    errors.push({
-      valid: false,
-      field: 'hours',
-      message: 'Clinic must have operating hours',
-    });
-  }
-
-  return errors;
-}
-
-/**
- * Validate that a patient object is complete and valid.
- */
-export function validatePatient(patient: Partial<Patient>): ValidationErrors {
-  const errors: ValidationResult[] = [];
-
-  // Patient ID
-  if (!patient.id) {
-    errors.push({
-      valid: false,
-      field: 'id',
-      message: 'Patient must have an ID',
-    });
-  }
-
-  // Name checks using existing validators
-  if (patient.firstName) {
-    errors.push(validateName(patient.firstName, 'first_name'));
-  } else {
-    errors.push({
-      valid: false,
-      field: 'first_name',
-      message: 'First name is required',
-    });
-  }
-
-  if (patient.lastName) {
-    errors.push(validateName(patient.lastName, 'last_name'));
-  } else {
-    errors.push({
-      valid: false,
-      field: 'last_name',
-      message: 'Last name is required',
-    });
-  }
-
-  // DOB
-  if (patient.dateOfBirth) {
-    errors.push(validateDateOfBirth(patient.dateOfBirth));
-  }
-
-  // Email
-  if (patient.email) {
-    errors.push(validateEmail(patient.email));
-  }
-
-  // Phone
-  if (patient.phone) {
-    errors.push(validatePhone(patient.phone));
-  }
-
-  const validErrors = errors.filter((e) => !e.valid);
-  return {
-    valid: validErrors.length === 0,
-    errors: validErrors,
-  };
+export function isNoShowRateAboveThreshold(
+  rate: number,
+  threshold: number = 20,
+): boolean {
+  return rate > threshold;
 }

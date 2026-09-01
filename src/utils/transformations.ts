@@ -1,286 +1,313 @@
 /**
- * HealthCore — Transformations & Aggregations
+ * HealthCore — Milestone 2: Transformations / Business Calculators
  *
- * Functions that take collections of objects and generate reports:
- * count elements by category, sum numeric values, find max/min, calculate averages.
- * Everything is fully typed and follows the single-responsibility principle.
+ * Billing Denial Rate Calculator (Section 3)
+ * No-Show Cost Estimator       (Section 4)
+ * CME Compliance Tracker       (Section 5)
  *
  * @package @repo/shared-types
  */
 
-import { CategoryCount, NumericSummary } from '../types/models';
+import {
+  Claim,
+  Appointment,
+  Clinician,
+  Location,
+  CMEReport,
+  CMEStatus,
+  ClinicianRole,
+} from "../types/models";
 
-// ──────────────────────────────────────────────
-// Counting & Categorization
-// ──────────────────────────────────────────────
+// ══════════════════════════════════════════════
+// SECTION 3 — Billing Denial Rate Calculator
+// ══════════════════════════════════════════════
 
 /**
- * Count how many elements exist for each distinct value of a given property.
- * Returns an array of { category, count } objects.
+ * Calculate the overall denial rate for a set of claims.
+ * rate = (denied claims / total claims) × 100
+ * Rounded to 2 decimal places.
+ * Throws if the claims array is empty.
  */
-export function countByCategory<T, K extends keyof T>(
-  items: T[],
-  categorySelector: (item: T) => string,
-): CategoryCount[] {
-  const map = new Map<string, number>();
+export function calculateDenialRate(claims: Claim[]): number {
+  if (claims.length === 0) {
+    throw new Error("Cannot calculate denial rate for an empty claims array");
+  }
+  const denied = claims.filter((c) => c.status === "denied").length;
+  const rate = (denied / claims.length) * 100;
+  return Math.round(rate * 100) / 100;
+}
 
-  for (const item of items) {
-    const category = categorySelector(item);
-    map.set(category, (map.get(category) ?? 0) + 1);
+/**
+ * Denial rate grouped by payer name.
+ */
+export function denialRateByPayer(
+  claims: Claim[],
+): Record<string, number> {
+  const grouped: Record<string, Claim[]> = {};
+  for (const claim of claims) {
+    if (!grouped[claim.payerName]) {
+      grouped[claim.payerName] = [];
+    }
+    grouped[claim.payerName].push(claim);
   }
 
-  return Array.from(map.entries())
-    .map(([category, count]) => ({ category, count }))
-    .sort((a, b) => b.count - a.count);
+  const result: Record<string, number> = {};
+  for (const [payer, payerClaims] of Object.entries(grouped)) {
+    const denied = payerClaims.filter((c) => c.status === "denied").length;
+    const rate = (denied / payerClaims.length) * 100;
+    result[payer] = Math.round(rate * 100) / 100;
+  }
+  return result;
 }
 
 /**
- * Count elements by a specific property value.
+ * Denial rate grouped by location ID.
  */
-export function countByProperty<T, K extends keyof T>(
-  items: T[],
-  property: K,
-): CategoryCount[] {
-  return countByCategory(items, (item) => String(item[property]));
+export function denialRateByLocation(
+  claims: Claim[],
+): Record<string, number> {
+  const grouped: Record<string, Claim[]> = {};
+  for (const claim of claims) {
+    if (!grouped[claim.locationId]) {
+      grouped[claim.locationId] = [];
+    }
+    grouped[claim.locationId].push(claim);
+  }
+
+  const result: Record<string, number> = {};
+  for (const [locId, locClaims] of Object.entries(grouped)) {
+    const denied = locClaims.filter((c) => c.status === "denied").length;
+    const rate = (denied / locClaims.length) * 100;
+    result[locId] = Math.round(rate * 100) / 100;
+  }
+  return result;
 }
 
-// ──────────────────────────────────────────────
-// Summation
-// ──────────────────────────────────────────────
-
 /**
- * Sum all numeric values extracted from items by a selector function.
+ * Return payer names whose denial rate exceeds the threshold (default 8%).
  */
-export function sum<T>(items: T[], valueSelector: (item: T) => number): number {
-  return items.reduce((total, item) => total + valueSelector(item), 0);
+export function flagHighDenialPayers(
+  claims: Claim[],
+  threshold: number = 8,
+): string[] {
+  const rates = denialRateByPayer(claims);
+  return Object.entries(rates)
+    .filter(([, rate]) => rate > threshold)
+    .map(([payer]) => payer);
 }
 
+// ══════════════════════════════════════════════
+// SECTION 4 — No-Show Cost Estimator
+// ══════════════════════════════════════════════
+
 /**
- * Sum values of a specific numeric property.
+ * Estimate the total cost of no-show appointments for a given location
+ * during the week ending on `weekEndingDate`.
+ * Assumes: no-show appointments are those with status "no_show",
+ * and the cost is the location's averageConsultationFee for each service type.
  */
-export function sumByProperty<T, K extends keyof T>(
-  items: T[],
-  property: K,
+export function calculateNoShowCost(
+  appointments: Appointment[],
+  location: Location,
+  weekEndingDate: string,
 ): number {
-  return sum(items, (item) => {
-    const val = item[property];
-    return typeof val === 'number' ? val : 0;
-  });
-}
+  const weekStart = subtractDays(weekEndingDate, 6);
 
-// ──────────────────────────────────────────────
-// Averages
-// ──────────────────────────────────────────────
-
-/**
- * Calculate the average (mean) of numeric values from a selector.
- * Returns 0 if the array is empty.
- */
-export function average<T>(items: T[], valueSelector: (item: T) => number): number {
-  if (items.length === 0) return 0;
-  const total = sum(items, valueSelector);
-  return total / items.length;
-}
-
-/**
- * Calculate the average of a specific numeric property.
- * Returns 0 if the array is empty.
- */
-export function averageByProperty<T, K extends keyof T>(
-  items: T[],
-  property: K,
-): number {
-  if (items.length === 0) return 0;
-  const total = sumByProperty(items, property);
-  return total / items.length;
-}
-
-// ──────────────────────────────────────────────
-// Minimum & Maximum
-// ──────────────────────────────────────────────
-
-/**
- * Find the minimum numeric value from a selector.
- * Returns undefined if the array is empty.
- */
-export function min<T>(items: T[], valueSelector: (item: T) => number): number | undefined {
-  if (items.length === 0) return undefined;
-  let minValue = valueSelector(items[0]);
-  for (let i = 1; i < items.length; i++) {
-    const val = valueSelector(items[i]);
-    if (val < minValue) minValue = val;
-  }
-  return minValue;
-}
-
-/**
- * Find the minimum value of a specific numeric property.
- * Returns undefined if the array is empty.
- */
-export function minByProperty<T, K extends keyof T>(
-  items: T[],
-  property: K,
-): number | undefined {
-  return min(items, (item) => {
-    const val = item[property];
-    return typeof val === 'number' ? val : 0;
-  });
-}
-
-/**
- * Find the maximum numeric value from a selector.
- * Returns undefined if the array is empty.
- */
-export function max<T>(items: T[], valueSelector: (item: T) => number): number | undefined {
-  if (items.length === 0) return undefined;
-  let maxValue = valueSelector(items[0]);
-  for (let i = 1; i < items.length; i++) {
-    const val = valueSelector(items[i]);
-    if (val > maxValue) maxValue = val;
-  }
-  return maxValue;
-}
-
-/**
- * Find the maximum value of a specific numeric property.
- * Returns undefined if the array is empty.
- */
-export function maxByProperty<T, K extends keyof T>(
-  items: T[],
-  property: K,
-): number | undefined {
-  return max(items, (item) => {
-    const val = item[property];
-    return typeof val === 'number' ? val : 0;
-  });
-}
-
-/**
- * Find the item with the minimum numeric value from a selector.
- * Returns undefined if the array is empty.
- */
-export function minBy<T>(
-  items: T[],
-  valueSelector: (item: T) => number,
-): T | undefined {
-  if (items.length === 0) return undefined;
-  let minItem = items[0];
-  let minValue = valueSelector(minItem);
-  for (let i = 1; i < items.length; i++) {
-    const val = valueSelector(items[i]);
-    if (val < minValue) {
-      minValue = val;
-      minItem = items[i];
-    }
-  }
-  return minItem;
-}
-
-/**
- * Find the item with the maximum numeric value from a selector.
- * Returns undefined if the array is empty.
- */
-export function maxBy<T>(
-  items: T[],
-  valueSelector: (item: T) => number,
-): T | undefined {
-  if (items.length === 0) return undefined;
-  let maxItem = items[0];
-  let maxValue = valueSelector(maxItem);
-  for (let i = 1; i < items.length; i++) {
-    const val = valueSelector(items[i]);
-    if (val > maxValue) {
-      maxValue = val;
-      maxItem = items[i];
-    }
-  }
-  return maxItem;
-}
-
-// ──────────────────────────────────────────────
-// Reports
-// ──────────────────────────────────────────────
-
-/**
- * Generate a full NumericSummary for a given numeric value selector.
- * Includes total, average, min, max, and count.
- */
-export function summarizeNumeric<T>(
-  items: T[],
-  label: string,
-  valueSelector: (item: T) => number,
-): NumericSummary {
-  const count = items.length;
-  const total = sum(items, valueSelector);
-  const avg = average(items, valueSelector);
-  const minVal = min(items, valueSelector) ?? 0;
-  const maxVal = max(items, valueSelector) ?? 0;
-
-  return { label, total, average: avg, min: minVal, max: maxVal, count };
-}
-
-/**
- * Generate a NumericSummary for a specific numeric property.
- */
-export function summarizeProperty<T, K extends keyof T>(
-  items: T[],
-  label: string,
-  property: K,
-): NumericSummary {
-  return summarizeNumeric(items, label, (item) => {
-    const val = item[property];
-    return typeof val === 'number' ? val : 0;
-  });
-}
-
-/**
- * Generate multiple category summaries from an array of items.
- * Groups items by a category key, then generates a NumericSummary per group.
- */
-export function summarizeByCategory<T>(
-  items: T[],
-  categorySelector: (item: T) => string,
-  valueSelector: (item: T) => number,
-): NumericSummary[] {
-  const groups = new Map<string, T[]>();
-
-  for (const item of items) {
-    const category = categorySelector(item);
-    const group = groups.get(category);
-    if (group) {
-      group.push(item);
-    } else {
-      groups.set(category, [item]);
-    }
-  }
-
-  return Array.from(groups.entries()).map(([category, groupItems]) =>
-    summarizeNumeric(groupItems, category, valueSelector),
+  const noShows = appointments.filter(
+    (apt) =>
+      apt.status === "no_show" &&
+      apt.locationId === location.locationId &&
+      apt.scheduledDate >= weekStart &&
+      apt.scheduledDate <= weekEndingDate,
   );
+
+  let totalCost = 0;
+  for (const apt of noShows) {
+    const fee = location.averageConsultationFee[apt.serviceType] ?? 0;
+    totalCost += fee;
+  }
+  return totalCost;
 }
 
 /**
- * Count total elements in an array.
+ * Calculate the no-show rate (percentage) per location.
  */
-export function count<T>(items: T[]): number {
-  return items.length;
+export function noShowRateByLocation(
+  appointments: Appointment[],
+): Record<string, number> {
+  const grouped: Record<string, { total: number; noShow: number }> = {};
+  for (const apt of appointments) {
+    if (!grouped[apt.locationId]) {
+      grouped[apt.locationId] = { total: 0, noShow: 0 };
+    }
+    grouped[apt.locationId].total++;
+    if (apt.status === "no_show") {
+      grouped[apt.locationId].noShow++;
+    }
+  }
+
+  const result: Record<string, number> = {};
+  for (const [locId, counts] of Object.entries(grouped)) {
+    const rate = (counts.noShow / counts.total) * 100;
+    result[locId] = Math.round(rate * 100) / 100;
+  }
+  return result;
 }
 
 /**
- * Generate a simple frequency report: for each distinct value of a property,
- * show the count and percentage of total.
+ * Return location IDs whose no-show rate exceeds the threshold (default 20%).
  */
-export function frequencyReport<T>(
-  items: T[],
-  labelSelector: (item: T) => string,
-): Array<{ label: string; count: number; percentage: number }> {
-  const total = items.length;
-  if (total === 0) return [];
+export function flagHighNoShowLocations(
+  appointments: Appointment[],
+  threshold: number = 20,
+): string[] {
+  const rates = noShowRateByLocation(appointments);
+  return Object.entries(rates)
+    .filter(([, rate]) => rate > threshold)
+    .map(([locId]) => locId);
+}
 
-  const counts = countByCategory(items, labelSelector);
-  return counts.map(({ category, count }) => ({
-    label: category,
-    count,
-    percentage: Math.round((count / total) * 100 * 100) / 100, // 2 decimal places
-  }));
+// ══════════════════════════════════════════════
+// SECTION 5 — CME Compliance Tracker
+// ══════════════════════════════════════════════
+
+/**
+ * Determine the CME compliance status for a clinician relative to a given date.
+ */
+function computeCMEStatus(
+  hoursRequired: number,
+  hoursLogged: number,
+  yearStartDate: string,
+  asOfDate: string,
+): CMEStatus {
+  const yearStart = new Date(yearStartDate);
+  const asOf = new Date(asOfDate);
+
+  // Year length in ms (roughly 365.25 days)
+  const yearMs = 365.25 * 24 * 60 * 60 * 1000;
+  const yearEnd = new Date(yearStart.getTime() + yearMs);
+
+  if (hoursLogged >= hoursRequired) {
+    return "complete";
+  }
+
+  // If we are past the year end date, it's overdue
+  if (asOf >= yearEnd) {
+    return "overdue";
+  }
+
+  // Estimate progress: linear time-based expectation
+  const elapsed = asOf.getTime() - yearStart.getTime();
+  const totalDuration = yearEnd.getTime() - yearStart.getTime();
+  const expectedProgress = elapsed / totalDuration; // 0..1
+  const loggedProgress = hoursRequired > 0 ? hoursLogged / hoursRequired : 0;
+
+  // If logged progress is less than 75% of expected, flag at_risk
+  if (expectedProgress > 0 && loggedProgress < expectedProgress * 0.75) {
+    return "at_risk";
+  }
+
+  return "on_track";
+}
+
+/**
+ * Helper: parse "YYYY-MM-DD" and subtract N days, returning "YYYY-MM-DD".
+ */
+function subtractDays(dateStr: string, days: number): string {
+  const d = new Date(dateStr);
+  d.setUTCDate(d.getUTCDate() - days);
+  const yyyy = d.getUTCFullYear();
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+/**
+ * Helper: calculate days remaining from asOfDate to the target date.
+ */
+function daysBetween(dateStr1: string, dateStr2: string): number {
+  const d1 = new Date(dateStr1);
+  const d2 = new Date(dateStr2);
+  return Math.ceil((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * Generate a CME compliance report for all clinicians.
+ */
+export function generateCMEReport(
+  clinicians: Clinician[],
+  asOfDate: string,
+): CMEReport[] {
+  return clinicians.map((doc) => {
+    const hoursRemaining = Math.max(0, doc.cmeHoursRequired - doc.cmeHoursLogged);
+    const percentComplete =
+      doc.cmeHoursRequired > 0
+        ? Math.round((doc.cmeHoursLogged / doc.cmeHoursRequired) * 100)
+        : 0;
+
+    const yearStart = new Date(doc.cmeYearStartDate);
+    const yearMs = 365.25 * 24 * 60 * 60 * 1000;
+    const yearEndDate = new Date(yearStart.getTime() + yearMs);
+    const yearEndStr = `${yearEndDate.getUTCFullYear()}-${String(yearEndDate.getUTCMonth() + 1).padStart(2, "0")}-${String(yearEndDate.getUTCDate()).padStart(2, "0")}`;
+
+    const daysRemainingInCycle = daysBetween(asOfDate, yearEndStr);
+    const complianceStatus = computeCMEStatus(
+      doc.cmeHoursRequired,
+      doc.cmeHoursLogged,
+      doc.cmeYearStartDate,
+      asOfDate,
+    );
+
+    const licenceDaysRemaining = daysBetween(
+      asOfDate,
+      doc.licenceExpiryDate,
+    );
+
+    return {
+      clinicianId: doc.clinicianId,
+      fullName: `${doc.firstName} ${doc.lastName}`,
+      role: doc.role,
+      locationId: doc.locationId,
+      hoursRequired: doc.cmeHoursRequired,
+      hoursLogged: doc.cmeHoursLogged,
+      hoursRemaining,
+      percentComplete,
+      daysRemainingInCycle,
+      complianceStatus,
+      licenceExpiryDate: doc.licenceExpiryDate,
+      licenceDaysRemaining,
+    };
+  });
+}
+
+/**
+ * Return clinicians whose CME status is "at_risk" or "overdue".
+ */
+export function getCliniciansAtRisk(
+  clinicians: Clinician[],
+  asOfDate: string,
+): Clinician[] {
+  return clinicians.filter((doc) => {
+    const status = computeCMEStatus(
+      doc.cmeHoursRequired,
+      doc.cmeHoursLogged,
+      doc.cmeYearStartDate,
+      asOfDate,
+    );
+    return status === "at_risk" || status === "overdue";
+  });
+}
+
+/**
+ * Return clinicians whose licence expires within `daysThreshold` days.
+ */
+export function getCliniciansWithExpiringLicences(
+  clinicians: Clinician[],
+  asOfDate: string,
+  daysThreshold: number,
+): Clinician[] {
+  return clinicians.filter((doc) => {
+    const remaining = daysBetween(asOfDate, doc.licenceExpiryDate);
+    return remaining >= 0 && remaining <= daysThreshold;
+  });
 }
