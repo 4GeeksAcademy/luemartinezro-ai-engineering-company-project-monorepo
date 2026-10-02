@@ -292,6 +292,45 @@ ai-engineering-company-project-monorepo/
 
 ---
 
+## HealthCore — Project-specific additions
+
+This section documents the **HealthCore-specific infrastructure** built on top of the template.
+
+### AI Agent infrastructure
+
+| Path | Description |
+|------|-------------|
+| [`AGENTS.md`](./AGENTS.md) | Protocol for AI agents: mandatory reading order, 6-step pre-commit flow, protected zones |
+| [`.agents/rules/tailwind-cdn.md`](.agents/rules/tailwind-cdn.md) | Rule: Tailwind CDN for all public web styling (no custom CSS, no inline styles) |
+| [`.agents/skills/website-audit/SKILL.md`](.agents/skills/website-audit/SKILL.md) | Reusable skill to audit HealthCore web pages against brand, accessibility, SEO, and content standards |
+| [`memory-bank/projectbrief.md`](./memory-bank/projectbrief.md) | Business context: HealthCore description, objectives, organisational chart |
+| [`memory-bank/techContext.md`](./memory-bank/techContext.md) | Technical stack, Architecture Decision Records (ADR-001 to ADR-006), regulatory constraints |
+| [`memory-bank/progress.md`](./memory-bank/progress.md) | Current development status and next steps |
+
+### Applications
+
+| Path | Description | Tech Stack |
+|------|-------------|------------|
+| [`uis/website/`](./uis/website/) | Public corporate website (bilingual EN/ES) | HTML5, Tailwind CSS v4 CDN, Schema.org JSON-LD |
+| [`uis/backoffice/`](./uis/backoffice/) | Internal dashboard with department KPIs | Next.js 16, TypeScript, Tailwind CSS + PostCSS |
+| [`services/api/`](./services/api/) | Centralised FastAPI backend | FastAPI, Pydantic v2, Uvicorn |
+
+### Brand palette
+
+HealthCore uses a custom blue palette configured via Tailwind config:
+
+| Class | Hex |
+|-------|-----|
+| `brand-50` | `#eefcff` |
+| `brand-100` | `#d6f6ff` |
+| `brand-200` | `#92eaff` |
+| `brand-300` | `#75d4ff` |
+| `brand-600` | `#0069ff` |
+| `brand-700` | `#0031c4` |
+| `brand-800` | `#0016a2` |
+
+---
+
 ## Links
 
 - [4Geeks Academy — AI Engineering](https://4geeksacademy.com/es/programas-de-carrera/ingenieria-ia)
