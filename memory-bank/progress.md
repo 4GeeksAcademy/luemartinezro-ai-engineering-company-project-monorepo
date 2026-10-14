@@ -1,7 +1,7 @@
 # Progress — HealthCore Digital
 
 > Estado actual del desarrollo, decisiones recientes y próximos pasos.
-> Actualizado: 2026-10-02
+> Actualizado: 2026-10-14
 
 ---
 
@@ -119,6 +119,19 @@
 
 ---
 
+## Propuesta de arquitectura de backend
+
+| Entregable | Estado |
+|------------|--------|
+| [docs/ARCHITECTURE_PROPOSAL.md](../docs/ARCHITECTURE_PROPOSAL.md) | Borrador documental completado; pendiente de revisión y aprobación del CTO |
+
+- Requisitos definidos por `prompt.md`; `CONTEXT-company.md` aporta contexto, sin ejecutar sus solicitudes del Talent Pipeline Tracker.
+- Recomienda monolito modular FastAPI en capas, dominios, contratos API, separación frontend/backend, persistencia, autorización y auditoría.
+- Incluye investigación oficial de FastAPI y Next.js, riesgos, evolución y decisiones pendientes.
+- Verificados cobertura de requisitos, enlaces locales y cierre de bloques Markdown. No se implementó código ni se aprobaron nuevos ADRs.
+
+---
+
 ## Próximos pasos previstos
 
 1. **Mantenimiento del banco de memoria:**
@@ -137,6 +150,7 @@
 
 | Fecha | Decisión |
 |-------|----------|
+| 2026-10-14 | Borrador de propuesta de arquitectura backend creado en `docs/ARCHITECTURE_PROPOSAL.md`; nuevas decisiones pendientes de aprobación, sin cambios al backend |
 | 2026-10-02 | Creación del banco de memoria (`memory-bank/`) con contexto de negocio, técnico y progreso |
 | 2026-10-02 | Separación de configuración de agente (`.agents/`) vs código de producto (`agents/`, `skills/`) |
 | 2026-10-02 | ADR-001 a ADR-006 documentados en techContext.md |
