@@ -41,8 +41,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 Dashboard
               </Link>
               <span className="text-gray-300">|</span>
+              <Link href="/incidents" className="font-medium text-[#0031c4]">
+                Incidents
+              </Link>
+              <span className="text-gray-300">|</span>
               <a
-                href="../../website/index.html"
+                href="/website-index.html"
                 className="text-gray-500 transition hover:text-[#0069ff]"
               >
                 Public site

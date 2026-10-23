@@ -312,8 +312,35 @@ This section documents the **HealthCore-specific infrastructure** built on top o
 | Path | Description | Tech Stack |
 |------|-------------|------------|
 | [`uis/website/`](./uis/website/) | Public corporate website (bilingual EN/ES) | HTML5, Tailwind CSS v4 CDN, Schema.org JSON-LD |
-| [`uis/backoffice/`](./uis/backoffice/) | Internal dashboard with department KPIs | Next.js 16, TypeScript, Tailwind CSS + PostCSS |
+| [`uis/backoffice/`](./uis/backoffice/) | Internal dashboard with department KPIs + incident analyzer | Next.js 16, TypeScript, Tailwind CSS + PostCSS |
 | [`services/api/`](./services/api/) | Centralised FastAPI backend | FastAPI, Pydantic v2, Uvicorn |
+
+### Incident Analyzer
+
+Data analysis utility for processing and validating HealthCore patient incident records (100-record CSV, tab-separated).
+
+| Component | Path | Description |
+|-----------|------|-------------|
+| **CLI script** | [`scripts/analyze.py`](./scripts/analyze.py) | Command-line tool to load CSV, validate records, and print metrics report |
+| **Shared service** | [`services/api/app/analyzer.py`](./services/api/app/analyzer.py) | Validation and metrics logic reused by both CLI and API |
+| **REST API** | [`services/api/app/routers/incidents.py`](./services/api/app/routers/incidents.py) | FastAPI endpoints: `POST /api/incidents/analyze` (upload & analyze CSV), `GET /api/incidents/results/export` (download CSV export) |
+| **Frontend** | [`uis/backoffice/app/incidents/page.tsx`](./uis/backoffice/app/incidents/page.tsx) | Next.js page with drag & drop upload, metrics visualisation, invalid records alert, and export download |
+
+**Validation rules (7):**
+- Invalid or missing clinic ID
+- Country/clinic mismatch
+- Invalid or missing category
+- Empty or too-short description
+- Missing patient ID
+- Closed case without score
+- Satisfaction score out of range (1–5)
+
+**Computed metrics:**
+- Total, valid, and invalid record counts
+- Category breakdown (APPOINTMENT, BILLING, CLINICAL_CARE, ACCESSIBILITY, ADMINISTRATIVE)
+- Status breakdown (OPEN, CLOSED, DISCARDED)
+- Country distribution (US, UK)
+- Average satisfaction score and distribution (1–5)
 
 ### Brand palette
 

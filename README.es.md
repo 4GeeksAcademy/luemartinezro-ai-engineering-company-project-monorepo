@@ -292,6 +292,72 @@ ai-engineering-company-project-monorepo/
 
 ---
 
+## HealthCore — Adiciones específicas del proyecto
+
+Esta sección documenta la **infraestructura específica de HealthCore** construida sobre la plantilla.
+
+### Infraestructura de agente de IA
+
+| Ruta | Descripción |
+|------|-------------|
+| [`AGENTS.md`](./AGENTS.md) | Protocolo para agentes de IA: orden de lectura obligatorio, flujo pre-commit de 6 pasos, zonas protegidas |
+| [`.agents/rules/tailwind-cdn.md`](.agents/rules/tailwind-cdn.md) | Regla: Tailwind CDN para todo el styling web público (sin CSS personalizado, sin estilos inline) |
+| [`.agents/skills/website-audit/SKILL.md`](.agents/skills/website-audit/SKILL.md) | Skill reutilizable para auditar páginas web de HealthCore contra estándares de marca, accesibilidad, SEO y contenido |
+| [`memory-bank/projectbrief.md`](./memory-bank/projectbrief.md) | Contexto de negocio: descripción de HealthCore, objetivos, organigrama |
+| [`memory-bank/techContext.md`](./memory-bank/techContext.md) | Stack técnico, registros de decisiones de arquitectura (ADR-001 a ADR-006), restricciones regulatorias |
+| [`memory-bank/progress.md`](./memory-bank/progress.md) | Estado actual del desarrollo y próximos pasos |
+
+### Aplicaciones
+
+| Ruta | Descripción | Stack Tecnológico |
+|------|-------------|-------------------|
+| [`uis/website/`](./uis/website/) | Sitio web corporativo público (bilingüe EN/ES) | HTML5, Tailwind CSS v4 CDN, Schema.org JSON-LD |
+| [`uis/backoffice/`](./uis/backoffice/) | Panel de control interno con KPIs departamentales + analizador de incidentes | Next.js 16, TypeScript, Tailwind CSS + PostCSS |
+| [`services/api/`](./services/api/) | Backend FastAPI centralizado | FastAPI, Pydantic v2, Uvicorn |
+
+### Analizador de Incidentes (Incident Analyzer)
+
+Herramienta de análisis de datos para procesar y validar registros de incidentes de pacientes de HealthCore (CSV de 100 registros, separado por tabuladores).
+
+| Componente | Ruta | Descripción |
+|------------|------|-------------|
+| **Script CLI** | [`scripts/analyze.py`](./scripts/analyze.py) | Herramienta de línea de comandos para cargar CSV, validar registros e imprimir informe de métricas |
+| **Servicio compartido** | [`services/api/app/analyzer.py`](./services/api/app/analyzer.py) | Lógica de validación y métricas reutilizada por el CLI y la API |
+| **API REST** | [`services/api/app/routers/incidents.py`](./services/api/app/routers/incidents.py) | Endpoints FastAPI: `POST /api/incidents/analyze` (subir CSV y analizar), `GET /api/incidents/results/export` (descargar CSV) |
+| **Frontend** | [`uis/backoffice/app/incidents/page.tsx`](./uis/backoffice/app/incidents/page.tsx) | Página Next.js con carga drag & drop, visualización de métricas, alertas de registros inválidos y descarga de exportación |
+
+**Reglas de validación (7):**
+- ID de clínica inválido o faltante
+- Discrepancia país/clínica
+- Categoría inválida o faltante
+- Descripción vacía o demasiado corta
+- ID de paciente faltante
+- Caso cerrado sin puntuación
+- Puntuación de satisfacción fuera de rango (1–5)
+
+**Métricas calculadas:**
+- Total de registros, válidos e inválidos
+- Desglose por categoría (APPOINTMENT, BILLING, CLINICAL_CARE, ACCESSIBILITY, ADMINISTRATIVE)
+- Desglose por estado (OPEN, CLOSED, DISCARDED)
+- Distribución por país (US, UK)
+- Puntuación media de satisfacción y distribución (1–5)
+
+### Paleta de colores
+
+HealthCore utiliza una paleta azul personalizada configurada mediante Tailwind:
+
+| Clase | Hex |
+|-------|-----|
+| `brand-50` | `#eefcff` |
+| `brand-100` | `#d6f6ff` |
+| `brand-200` | `#92eaff` |
+| `brand-300` | `#75d4ff` |
+| `brand-600` | `#0069ff` |
+| `brand-700` | `#0031c4` |
+| `brand-800` | `#0016a2` |
+
+---
+
 ## Enlaces
 
 - [4Geeks Academy — Ingeniería de IA](https://4geeksacademy.com/es/programas-de-carrera/ingenieria-ia)
