@@ -1,0 +1,1 @@
+"""Auth module — autenticación y login."""

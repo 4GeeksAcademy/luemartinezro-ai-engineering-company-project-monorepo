@@ -1,0 +1,22 @@
+[project]
+name = "api"
+version = "0.1.0"
+description = "AI Engineering Company API Service"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.0",
+    "pydantic[email]>=2.0.0",
+    "python-jose[cryptography]>=3.3.0",
+    "python-multipart>=0.0.9",
+    "tinydb>=4.8.0",
+    "pydantic-settings>=2.16.1",
+    "bcrypt>=5.0.0",
+]
+
+[project.scripts]
+api = "app.main:start"
+
+[build-system]
+requires = ["uv_build>=0.13.5,<0.14.0"]
+build-backend = "uv_build"

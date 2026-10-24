@@ -1,0 +1,1 @@
+"""Profiles module — datos de contacto y nombre visible vinculados a usuarios."""
