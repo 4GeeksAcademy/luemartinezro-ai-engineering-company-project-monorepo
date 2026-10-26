@@ -150,6 +150,7 @@
 
 | Fecha | Decisión |
 |-------|----------|
+| 2026-10-26 | **Fix backoffice:** la URL de la API (`http://localhost:8000` hardcodeada) se reemplazó por resolución dinámica en `uis/backoffice/lib/api.ts` + override `NEXT_PUBLIC_API_URL`. Funciona en local, Codespaces y despliegues (ADR-007). |
 | 2026-10-14 | Borrador de propuesta de arquitectura backend creado en `docs/ARCHITECTURE_PROPOSAL.md`; nuevas decisiones pendientes de aprobación, sin cambios al backend |
 | 2026-10-02 | Creación del banco de memoria (`memory-bank/`) con contexto de negocio, técnico y progreso |
 | 2026-10-02 | Separación de configuración de agente (`.agents/`) vs código de producto (`agents/`, `skills/`) |

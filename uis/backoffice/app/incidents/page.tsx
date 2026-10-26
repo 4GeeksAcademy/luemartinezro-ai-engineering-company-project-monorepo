@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState, useRef, useEffect } from "react";
+import { getApiBase } from "@/lib/api";
 
 // ── Types matching the API response ────────────────────────────────────────
 
@@ -39,8 +40,6 @@ interface AnalysisResult {
 type PageState = "idle" | "uploading" | "success" | "error";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-
-const API_BASE = "http://localhost:8000";
 
 const RULE_LABELS: Record<keyof RuleCounts, string> = {
   invalid_or_missing_clinic_id: "Invalid or missing clinic ID",
@@ -109,7 +108,7 @@ export default function IncidentsPage() {
     formData.append("file", file);
 
     try {
-      const res = await fetch(`${API_BASE}/api/incidents/analyze`, {
+      const res = await fetch(`${getApiBase()}/api/incidents/analyze`, {
         method: "POST",
         body: formData,
       });
@@ -158,7 +157,7 @@ export default function IncidentsPage() {
 
   const handleExport = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/incidents/results/export`);
+      const res = await fetch(`${getApiBase()}/api/incidents/results/export`);
       if (!res.ok) {
         const errBody = await res.json().catch(() => null);
         throw new Error(errBody?.detail ?? "Export failed");
