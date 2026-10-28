@@ -61,7 +61,9 @@ async def analyze_incidents(file: UploadFile = File(...)):
     """
     Upload a CSV file of patient incidents and return analysis summary.
 
-    The CSV must be tab-separated with the expected HealthCore schema.
+    The file may be comma-, tab- or whitespace-separated. The delimiter is
+    detected automatically and columns are mapped by header name, so the
+    standard HealthCore schema is validated regardless of the separator.
     """
     global _last_result
 
@@ -92,6 +94,9 @@ async def analyze_incidents(file: UploadFile = File(...)):
         )
         _last_result = result
         return _build_response(result)
+    except ValueError as exc:
+        # Unparseable / wrong-format file → descriptive 400, not a 500.
+        raise HTTPException(status_code=400, detail=str(exc))
     finally:
         os.unlink(tmp_path)
 

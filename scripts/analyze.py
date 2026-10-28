@@ -5,9 +5,9 @@ HealthCore — Patient Incident Report Analyzer (CLI)
 Usage:
     python analyze.py incidents-healthcore.csv
 
-Reads a tab-separated CSV of patient incidents, validates records,
-computes summary metrics, prints a formatted report, and optionally
-exports to CSV.
+Reads a CSV of patient incidents (comma-, tab- or whitespace-separated;
+the delimiter is detected automatically), validates records, computes
+summary metrics, prints a formatted report, and optionally exports to CSV.
 
 Complies with HIPAA / UK GDPR — patient_id is NEVER printed or exported.
 
@@ -166,7 +166,16 @@ def main():
         print(f"ERROR: File not found: {filepath}")
         sys.exit(1)
 
-    result = analyze(filepath)
+    if os.path.getsize(filepath) == 0:
+        print(f"ERROR: File is empty: {filepath}")
+        sys.exit(1)
+
+    try:
+        result = analyze(filepath)
+    except ValueError as exc:
+        print(f"ERROR: {exc}")
+        sys.exit(1)
+
     print_report(result)
 
     # Ask about CSV export

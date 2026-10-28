@@ -119,6 +119,30 @@
 
 ---
 
+## Incident Analyzer (HealthCore) ✅
+
+**Objetivo:** procesar el CSV de incidencias de pacientes (`incidents-healthcore.csv`) y producir el resumen de métricas definido en el BRIEFING.
+
+### Deliverables
+
+| Archivo | Descripción | Estado |
+|---------|-------------|--------|
+| `services/api/app/analyzer.py` | Lógica compartida: carga tolerante a delimitador, validación, métricas | ✅ |
+| `scripts/analyze.py` | CLI: reporte formateado + export a `results.csv` | ✅ |
+| `services/api/app/routers/incidents.py` | `POST /api/incidents/analyze`, `GET /api/incidents/results/export` | ✅ |
+| `uis/backoffice/app/incidents/page.tsx` | Página de subida y visualización del análisis | ✅ |
+| `incidents-healthcore.csv` | Input normalizado a comas (estándar del BRIEFING) | ✅ |
+| `results.csv` | Output separado por comas (`metric,value,percentage`) | ✅ |
+
+### Fix: verificación de CSV con delimitadores (2026-10-28)
+
+- **Problema:** el parser estaba fijado a tabulaciones (`delimiter="\t"`). Los CSV separados por comas se leían como una sola columna → todos los registros marcados inválidos → reporte en 0.
+- **Solución:** detección automática de delimitador con `try-except` (`csv.Sniffer` + fallbacks), mapeo de columnas por nombre de cabecera y reconstrucción de filas separadas por espacios (ancladas en el esquema).
+- **Resultado:** acepta comas, tabulaciones y espacios; los tres formatos producen los valores exactos del BRIEFING (100 / 94 válidos / 6 inválidos, avg 3.58).
+- **Input corregido:** se eliminó una columna fantasma inicial y se convirtió de tabs a comas.
+
+---
+
 ## Propuesta de arquitectura de backend
 
 | Entregable | Estado |
@@ -150,6 +174,7 @@
 
 | Fecha | Decisión |
 |-------|----------|
+| 2026-10-28 | **Fix Incident Analyzer:** parser de CSV tolerante a delimitador (comas/tabs/espacios) con detección automática + mapeo por nombre de columna; input `incidents-healthcore.csv` normalizado a comas; `results.csv` regenerado. |
 | 2026-10-26 | **Fix backoffice:** la URL de la API (`http://localhost:8000` hardcodeada) se reemplazó por resolución dinámica en `uis/backoffice/lib/api.ts` + override `NEXT_PUBLIC_API_URL`. Funciona en local, Codespaces y despliegues (ADR-007). |
 | 2026-10-14 | Borrador de propuesta de arquitectura backend creado en `docs/ARCHITECTURE_PROPOSAL.md`; nuevas decisiones pendientes de aprobación, sin cambios al backend |
 | 2026-10-02 | Creación del banco de memoria (`memory-bank/`) con contexto de negocio, técnico y progreso |

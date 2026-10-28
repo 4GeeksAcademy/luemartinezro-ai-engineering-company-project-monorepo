@@ -192,7 +192,7 @@ export default function IncidentsPage() {
           Patient Incident Analysis
         </h1>
         <p className="mt-2 text-sm text-gray-600">
-          Upload a tab-separated CSV file with patient incident records to
+          Upload a CSV file with patient incident records to
           validate, categorise, and compute quality metrics.
         </p>
       </section>
@@ -235,7 +235,7 @@ export default function IncidentsPage() {
               Drop your CSV file here, or click to browse
             </p>
             <p className="mt-1 text-xs text-gray-400">
-              Tab-separated .csv with incident data
+              Comma-separated .csv with incident data
             </p>
           </>
         )}
