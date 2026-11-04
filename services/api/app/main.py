@@ -9,11 +9,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.settings import settings
+from app.db.tinydb import init_db
 from app.modules.auth.router import router as auth_router
 from app.modules.profiles.router import router as profiles_router
 from app.modules.users.router import router as users_router
 from app.models.schemas import HealthResponse
 from app.routers import clinics, departments
+
+# ── Ensure the TinyDB data directory exists before any request ──
+init_db()
 
 app = FastAPI(
     title=settings.API_TITLE,

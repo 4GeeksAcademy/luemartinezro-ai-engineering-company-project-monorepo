@@ -9,4 +9,7 @@ build/
 .env
 .env.local
 *.log
+# TinyDB data files (auto-created)
+data/tinydb.json
+services/api/data/
 

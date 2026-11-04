@@ -138,7 +138,8 @@ services/api/
     │
     ├── db/                       # ▲ Capa de persistencia
     │   ├── __init__.py
-    │   └── tinydb.py             # Singleton TinyDB + get_table()
+    │   ├── cli.py                # CLI: uv run init-db
+    │   └── tinydb.py             # Singleton TinyDB + init_db() + get_table()
     │
     ├── modules/                  # ▲ Módulos de negocio (Router → Service → Repository)
     │   ├── auth/                 # Autenticación JWT
@@ -260,25 +261,60 @@ services/api/
 ## Prerrequisitos
 
 - Python 3.14+
-- [uv](https://docs.astral.sh/uv/) (gestor de paquetes)
+- [uv](https://docs.astral.sh/uv/) (gestor de paquetes, recomendado) o `pip`
 
 ---
 
 ## Cómo ejecutar
 
+### 1. Configurar variables de entorno
+
 ```bash
-# 1. Ir al directorio de la API
 cd services/api
-
-# 2. Configurar variables de entorno
 cp .env.example .env
-# Editar .env con los valores deseados
+# Editar .env con los valores deseados (JWT_SECRET_KEY, etc.)
+```
 
-# 3. Instalar dependencias (con uv)
+### 2. Instalar dependencias
+
+**Con uv (recomendado):**
+```bash
 uv sync
+```
 
-# 4. Iniciar servidor
+**Con pip:**
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Inicializar la base de datos TinyDB
+
+> **La base de datos se crea automáticamente al arrancar la API** — no es necesario ejecutar este paso manualmente.  
+> El directorio `data/` y el archivo `data/tinydb.json` se crean en el primer uso gracias a `init_db()`.
+
+Si deseas crearla explícitamente antes de arrancar:
+
+**Con uv:**
+```bash
+uv run init-db
+```
+
+**Con pip:**
+```bash
+python3 -c "from app.db.tinydb import init_db; init_db()"
+```
+
+Esto crea el directorio `data/` y el archivo `tinydb.json` si no existen (operación idempotente).
+
+### 4. Iniciar el servidor
+
+```bash
 uv run uvicorn app.main:app --reload --port 8000
+```
+
+O con pip:
+```bash
+uvicorn app.main:app --reload --port 8000
 ```
 
 La documentación interactiva estará disponible en:
