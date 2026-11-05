@@ -1,0 +1,6 @@
+{
+  "name": "healthcore-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HealthCore Central API — FastAPI backend"
+}
