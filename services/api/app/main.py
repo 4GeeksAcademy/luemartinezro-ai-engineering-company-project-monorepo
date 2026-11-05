@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.models.schemas import HealthResponse
-from app.routers import clinics, departments
+from app.routers import clinics, departments, incidents
 
 app = FastAPI(
     title="HealthCore Central API",
@@ -40,3 +40,4 @@ async def health_check():
 
 app.include_router(clinics.router)
 app.include_router(departments.router)
+app.include_router(incidents.router)

@@ -46,6 +46,43 @@ npm run dev
 
 El servidor de desarrollo arrancará en `http://localhost:3000`.
 
+## Configuración de la API de backend
+
+El frontend del backoffice consume la **HealthCore Central API** (`services/api/`) en las rutas:
+
+- `POST /api/incidents/analyze` — subir CSV y obtener el resumen
+- `GET /api/incidents/results/export` — descargar el último análisis en CSV
+
+### Resolución dinámica de la URL (sin `localhost` hardcodeado)
+
+La URL base de la API se resuelve automáticamente en `lib/api.ts` según el entorno:
+
+1. **Override explícito:** si `NEXT_PUBLIC_API_URL` está definida, se usa esa URL.
+2. **GitHub Codespaces:** se deriva del origen actual (`https://<workspace>-8000.app.github.dev`).
+3. **Local (fallback):** `http://localhost:8000`.
+
+Para forzar una URL concreta:
+
+```bash
+cp .env.example .env.local
+# editar NEXT_PUBLIC_API_URL si es necesario
+```
+
+### Ejecución conjunta (local)
+
+```bash
+# Terminal 1 — backend
+cd services/api
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+
+# Terminal 2 — frontend
+cd uis/backoffice
+npm run dev
+```
+
+En Codespaces, GitHub reenvía ambos puertos (3000 y 8000) automáticamente; el helper deriva el host reenviado del backend desde el origen del frontend.
+
 ## Notas
 
 - El layout es independiente del sitio web público (`uis/website/`). Cada uno tiene su propio header, navegación y footer.
