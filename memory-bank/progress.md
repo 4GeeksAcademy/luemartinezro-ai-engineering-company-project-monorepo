@@ -1,7 +1,7 @@
 # Progress — HealthCore Digital
 
 > Estado actual del desarrollo, decisiones recientes y próximos pasos.
-> Actualizado: 2026-10-14
+> Actualizado: 2026-11-07
 
 ---
 
@@ -22,17 +22,18 @@
 
 | Archivo | Descripción | Estado |
 |---------|-------------|--------|
-| `index.html` | Landing page en inglés | ✅ |
-| `index.es.html` | Landing page en español | ✅ |
-| `application.html` | Formulario de consulta en inglés | ✅ |
-| `application.es.html` | Formulario de consulta en español | ✅ |
-| `validation.js` | Validación compartida (inglés/español) | ✅ |
+| `uis/website/app/page.tsx` y `app/es/page.tsx` | Landing pages en inglés y español (rutas `/` y `/es`) | ✅ |
+| `uis/website/app/application/page.tsx` y `app/es/application/page.tsx` | Formularios de consulta demo bilingües | ✅ |
+| `uis/website/app/utilities/page.tsx` y `app/es/utilities/page.tsx` | Showcase bilingüe de utilidades del Hito 2 | ✅ |
+| `index.html`, `index.es.html`, `application.html`, `application.es.html` | Archivos HTML de la raíz eliminados tras migrar sus funciones a Next.js | ✅ |
 
 ### Decisiones tomadas
 - (Histórica, supersedida) Tailwind CSS vía CDN para estilos; el estándar vigente exige Next.js para todo frontend (ver `techContext.md` y `.agents/rules/frontend-nextjs.md`).
 - Archivos separados por idioma (no toggle JS)
 - Schema.org structured data para SEO
 - Validación con mensajes localizados por idioma
+- Migración completada: el sitio público soportado ahora es `uis/website` (Next.js App Router); el formulario solo valida en el navegador y no envía ni persiste datos.
+- El showcase de utilidades en `/utilities` y `/es/utilities` reutiliza los modelos y funciones de `src/`, incluyendo claims, citas sin asistencia, búsquedas, CME, validaciones y umbrales.
 
 ### Ver más
 - [README_MILESTONE1.md](../README_MILESTONE1.md)

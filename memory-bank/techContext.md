@@ -118,7 +118,7 @@
 
 | Convención | Aplicación |
 |-----------|-----------|
-| **Archivos bilingües** | Sufijo `.es.html` para español (ej: `index.es.html`) |
+| **Rutas bilingües** | Next.js App Router: rutas localizadas `/` y `/es`; formulario en `/application` y `/es/application` |
 | **Ramas git** | `feature/<nombre>`, `fix/<nombre>` |
 | **Commits** | Prefijo semántico: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:` |
 
@@ -138,11 +138,11 @@
 ## 5. Rutas clave del monorepo
 
 ```
-/ -> contiene páginas HTML heredadas; el frontend vigente debe implementarse en Next.js
+\/ -> configuración y scripts del monorepo; el frontend público vigente está en Next.js
 ├── .agents/          -> Reglas y skills para agentes de IA
 ├── memory-bank/      -> Banco de memoria del proyecto
 ├── uis/
-│   ├── website/      -> Web pública corporativa (migrar legado HTML a Next.js)
+│   ├── website/      -> Web pública corporativa Next.js (/, /es, /application, /es/application, /utilities, /es/utilities; puerto 3002)
 │   └── backoffice/   -> Aplicación interna de administración
 ├── services/
 │   └── api/          -> API FastAPI centralizada

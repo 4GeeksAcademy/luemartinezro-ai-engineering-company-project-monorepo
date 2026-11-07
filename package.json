@@ -8,7 +8,7 @@
     "build": "npm --prefix uis/website run build",
     "start": "npm --prefix uis/website run start",
     "lint": "npm --prefix uis/website run lint",
-    "typecheck": "npm --prefix uis/website exec tsc -- --noEmit"
+    "typecheck": "npm --prefix uis/website run typecheck"
   },
   "devDependencies": {
     "typescript": "^5.5.0",

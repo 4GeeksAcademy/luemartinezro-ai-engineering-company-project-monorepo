@@ -21,7 +21,7 @@ npm install
 npm run dev
 ```
 
-The website's dev/start scripts use port 3002. Root scripts delegate to this Next.js app. To avoid port conflicts with the backoffice and talent tracker, launch the website on its configured port 3002; run the Careers app separately on port 3000.
+The website's dev/start scripts use port 3002. Root scripts delegate to this Next.js app. The Careers link targets the talent tracker on port 3003; start that app separately with `npm run dev -- --port 3003` from `uis/talent-pipeline-tracker` (its default port 3000 is also used by the backoffice).
 
 ## Form and data limitations
 

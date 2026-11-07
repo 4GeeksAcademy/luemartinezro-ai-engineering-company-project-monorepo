@@ -108,7 +108,7 @@ El agente DEBE seguir estos **6 pasos** en orden antes de crear cualquier commit
 
 | Ruta | Condición |
 |------|-----------|
-| `index.html`, `index.es.html`, `application.html`, `application.es.html` | Archivos históricos del Hito 1 autorizados para eliminar después de migrar sus funciones a Next.js. |
+| `index.html`, `index.es.html`, `application.html`, `application.es.html` | Archivos históricos del Hito 1; ya eliminados de la raíz tras migrar el sitio público y sus funciones de demostración a Next.js en `uis/website`. |
 | `validation.js` | Lógica de validación compartida del Hito 1. No mover sin actualizar todas las referencias. |
 | `README_MILESTONE1.md` | Documentación del Hito 1. Mantener como referencia histórica. |
 
