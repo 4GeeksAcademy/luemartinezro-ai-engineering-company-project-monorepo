@@ -1,11 +1,12 @@
-"""Departments router — HealthCore department and KPI endpoints."""
+"""Departments router — HealthCore department and KPI endpoints. All routes require authentication."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.core.security import get_current_user
 from app.data import DEPARTMENTS
 from app.models.schemas import Department, DepartmentId
 
-router = APIRouter(prefix="/departments", tags=["departments"])
+router = APIRouter(prefix="/departments", tags=["departments"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("", response_model=list[Department])

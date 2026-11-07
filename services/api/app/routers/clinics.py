@@ -1,11 +1,12 @@
-"""Clinics router — HealthCore clinic endpoints."""
+"""Clinics router — HealthCore clinic endpoints. All routes require authentication."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.core.security import get_current_user
 from app.data import CLINICS
 from app.models.schemas import ClinicLocation, Country
 
-router = APIRouter(prefix="/clinics", tags=["clinics"])
+router = APIRouter(prefix="/clinics", tags=["clinics"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("", response_model=list[ClinicLocation])

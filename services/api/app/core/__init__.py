@@ -1,0 +1,1 @@
+"""Core — configuración, seguridad y errores transversales."""
