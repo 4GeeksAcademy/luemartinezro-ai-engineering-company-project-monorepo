@@ -3,6 +3,12 @@ import { LocaleDocument } from "./locale-document";
 
 export type Locale = "en" | "es";
 
+const careersHref = process.env.NEXT_PUBLIC_TALENT_TRACKER_URL || (
+  process.env.CODESPACE_NAME
+    ? `https://${process.env.CODESPACE_NAME}-3003.app.github.dev/`
+    : "http://localhost:3003/"
+);
+
 const navigation = {
   en: { home: "Home", services: "Services", locations: "Locations", contact: "Contact", careers: "Careers", utilities: "Utilities demo", request: "Request an appointment", tagline: "Outpatient care network", footer: "All rights reserved." },
   es: { home: "Inicio", services: "Servicios", locations: "Ubicaciones", contact: "Contacto", careers: "Carreras", utilities: "Demo de utilidades", request: "Solicitar una cita", tagline: "Red de atención ambulatoria", footer: "Todos los derechos reservados." },
@@ -26,7 +32,7 @@ export function SiteHeader({ locale, page = "home" }: { locale: Locale; page?: "
           <Link className="transition hover:text-brand-700" href={`${homePath}#${ids.services}`}>{t.services}</Link>
           <Link className="transition hover:text-brand-700" href={`${homePath}#${ids.locations}`}>{t.locations}</Link>
           <Link className="transition hover:text-brand-700" href={`${homePath}#${ids.contact}`}>{t.contact}</Link>
-          <Link className="transition hover:text-brand-700" href="http://localhost:3003/">{t.careers}</Link>
+          <Link className="transition hover:text-brand-700" href={careersHref}>{t.careers}</Link>
           <Link className="transition hover:text-brand-700" href={locale === "es" ? "/es/utilities" : "/utilities"}>{t.utilities}</Link>
           {page !== "application" && <Link href={applicationPath} className="rounded-full bg-brand-700 px-4 py-2 font-semibold text-white shadow-panel transition hover:bg-brand-800">{t.request}</Link>}
         </div>

@@ -122,8 +122,6 @@ services/api/
 ├── main.py                       # Compatibilidad: reexporta app.main:app
 ├── seed.py                       # Carga inicial de proveedores
 ├── pyproject.toml                # Proyecto Python (uv)
-├── uv.lock                       # Lock de dependencias
-├── requirements.txt              # Dependencias legacy
 ├── README.md                     # Este archivo
 ├── data/
 │   └── tinydb.json               # Base de datos TinyDB (auto-creada)
@@ -282,7 +280,7 @@ cp .env.example .env
 uv sync
 
 # 4. Iniciar servidor
-uv run uvicorn app.main:app --reload --port 8000
+uv run --package api uvicorn app.main:app --reload --port 8000
 ```
 
 La documentación interactiva estará disponible en:

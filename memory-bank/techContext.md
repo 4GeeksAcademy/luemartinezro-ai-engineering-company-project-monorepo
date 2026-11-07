@@ -78,6 +78,12 @@
 - **Decisión:** Implementar `uis/backoffice/lib/api.ts` con un helper `getApiBase()` que resuelve la base de la API en este orden: (1) `NEXT_PUBLIC_API_URL` si está definida, (2) derivación automática del host reenviado de Codespaces desde el origen del frontend, (3) fallback local `http://localhost:8000`.
 - **Consecuencia:** Las llamadas a `POST /api/incidents/analyze` y `GET /api/incidents/results/export` funcionan en local, Codespaces y despliegues sin recompilar ni hardcodear hosts. El override por variable de entorno permite fijar la URL por entorno (`docs/ARCHITECTURE_PROPOSAL.md` §9).
 
+### ADR-008: uv como workspace Python del monorepo
+
+- **Contexto:** La raíz y `services/api/` tenían proyectos y locks Python separados, además de un `requirements.txt` parcial; el proyecto raíz era un scaffold sin uso funcional.
+- **Decisión:** Administrar Python desde un único workspace `uv` en la raíz, con `services/api/` como miembro y `uv.lock` raíz como lock único. Las dependencias compartidas por scripts se declaran en grupos opcionales; las apps Next.js continúan usando npm.
+- **Consecuencia:** `uv sync` instala el workspace, `uv run --package api ...` ejecuta la API y `uv run --group data-analysis ...` habilita pandas para los scripts de análisis. Cada nuevo proyecto Python debe añadirse como miembro con su propio `pyproject.toml`, sin duplicar locks ni `requirements.txt`.
+
 ---
 
 ## 3. Restricciones técnicas

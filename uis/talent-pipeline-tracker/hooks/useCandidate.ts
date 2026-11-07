@@ -5,30 +5,51 @@ import { fetchCandidate } from "@/lib/api";
 import type { Candidate } from "@/types";
 
 export function useCandidate(id: string) {
-  const [candidate, setCandidate] = useState<Candidate | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await fetchCandidate(id);
-      setCandidate(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unexpected error occurred");
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  const [refreshVersion, setRefreshVersion] = useState(0);
+  const requestKey = `${id}:${refreshVersion}`;
+  const [result, setResult] = useState<{
+    key: string;
+    candidate: Candidate | null;
+    error: string | null;
+  } | null>(null);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let active = true;
 
-  const updateCandidate = useCallback((updated: Candidate) => {
-    setCandidate(updated);
+    fetchCandidate(id)
+      .then((candidate) => {
+        if (active) setResult({ key: requestKey, candidate, error: null });
+      })
+      .catch((err: unknown) => {
+        if (active) {
+          setResult({
+            key: requestKey,
+            candidate: null,
+            error: err instanceof Error ? err.message : "An unexpected error occurred",
+          });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [id, requestKey]);
+
+  const refetch = useCallback(() => {
+    setRefreshVersion((version) => version + 1);
   }, []);
+  const currentResult = result?.key === requestKey ? result : null;
+  const updateCandidate = useCallback((updated: Candidate) => {
+    setResult((previous) => previous?.key === requestKey
+      ? { ...previous, candidate: updated }
+      : previous);
+  }, [requestKey]);
 
-  return { candidate, loading, error, refetch: load, updateCandidate };
+  return {
+    candidate: currentResult?.candidate ?? null,
+    loading: currentResult === null,
+    error: currentResult?.error ?? null,
+    refetch,
+    updateCandidate,
+  };
 }

@@ -106,7 +106,7 @@ uis/talent-pipeline-tracker/
 
 ### 1. Environment Variables
 
-Create `.env.local` (already in place):
+The tracker uses the public Talent Tracker API by default. To use a different instance, create `.env.local` with:
 
 ```env
 NEXT_PUBLIC_API_URL=https://playground.4geeks.com/tracker/api/v1

@@ -13,7 +13,10 @@ import type {
   NotesResponse,
 } from "@/types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL!;
+const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://playground.4geeks.com/tracker/api/v1"
+).replace(/\/+$/, "");
 
 async function request<T>(
   endpoint: string,

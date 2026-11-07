@@ -1,19 +1,18 @@
 [project]
-name = "luemartinezro-ai-engineering-company-project-monorepo"
+name = "healthcore-python-workspace"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
-authors = [
-    { name = "Esteban Martinez Roldan", email = "55822221+luemartinezro@users.noreply.github.com" }
-]
+description = "Python workspace for HealthCore services and scripts"
 requires-python = ">=3.14"
-dependencies = [
-    "bcrypt>=5.0.0",
-]
+dependencies = ["api"]
 
-[project.scripts]
-luemartinezro-ai-engineering-company-project-monorepo = "luemartinezro_ai_engineering_company_project_monorepo:main"
+[dependency-groups]
+data-analysis = ["pandas>=2.2.3"]
 
-[build-system]
-requires = ["uv_build>=0.13.5,<0.14.0"]
-build-backend = "uv_build"
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["services/api"]
+
+[tool.uv.sources]
+api = { workspace = true }

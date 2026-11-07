@@ -21,7 +21,7 @@ npm install
 npm run dev
 ```
 
-The website's dev/start scripts use port 3002. Root scripts delegate to this Next.js app. The Careers link targets the talent tracker on port 3003; start that app separately with `npm run dev -- --port 3003` from `uis/talent-pipeline-tracker` (its default port 3000 is also used by the backoffice).
+The website's dev/start scripts use port 3002. Root scripts delegate to this Next.js app. The Careers link targets port 3003 in Codespaces and local development. Set `NEXT_PUBLIC_TALENT_TRACKER_URL` to override the destination in other deployments. Start the tracker separately with `npm run dev -- --port 3003` from `uis/talent-pipeline-tracker` (its default port 3000 is also used by the backoffice).
 
 ## Form and data limitations
 

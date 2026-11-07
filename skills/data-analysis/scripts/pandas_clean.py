@@ -1,6 +1,6 @@
 """
 Safe snippet for basic pandas cleaning. Copy and adapt for your dataset.
-Run: python pandas_clean.py  (ensure pandas is installed)
+Run from the repo root: uv run --group data-analysis python skills/data-analysis/scripts/pandas_clean.py
 """
 import pandas as pd
 

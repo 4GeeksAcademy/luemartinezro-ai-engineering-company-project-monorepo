@@ -80,6 +80,13 @@
 ### API consumida
 - `https://playground.4geeks.com/tracker/api/v1`
 
+### Fix de navegación y API (2026-11-07)
+
+- El enlace Careers ahora deriva el puerto 3003 en Codespaces, usa localhost en desarrollo local y permite `NEXT_PUBLIC_TALENT_TRACKER_URL` como override.
+- El cliente del tracker usa la URL oficial como fallback cuando `NEXT_PUBLIC_API_URL` no está configurada. La API respondió y reportó 103 candidatos; no se añadieron datos dummy.
+- Los hooks de candidatos, detalle y notas reflejan la petición vigente, cancelan respuestas obsoletas y permiten reintentos sin actualizaciones síncronas desde efectos.
+- Verificados builds de website y tracker, rutas HTTP `/, /utilities, /es/utilities` y `/`, y el enlace Careers en el HTML servido.
+
 ---
 
 ## Hito 4: Gestión de Proveedores (Supplier Directory) ✅
@@ -90,7 +97,6 @@
 
 | Archivo | Descripción | Estado |
 |---------|-------------|--------|
-| `services/api/requirements.txt` | Dependencias Python (añadido `tinydb>=4.8.0`) | ✅ |
 | `services/api/pyproject.toml` | Configuración uv con dependencias declaradas | ✅ |
 | `services/api/app/models/suppliers.py` | Schemas Pydantic v2: enums, modelos Create/Response/Document | ✅ |
 | `services/api/app/database.py` | Wrapper TinyDB: suppliers_table, count, is_empty | ✅ |
@@ -250,7 +256,8 @@
 - El seeder y el router utilizan los módulos de proveedores bajo `app/`; se retiraron los módulos planos duplicados.
 - La gestión de proveedores queda concentrada en `uis/backoffice`; se eliminó `uis/application` y las copias estáticas del sitio dentro de `uis/backoffice/public/`.
 - Se conservan las páginas heredadas de `uis/website/` y `src/`; se eliminó el scaffold `services/api/src/api/` y `pyproject.toml` configura `uv_build` para empaquetar el módulo `app`.
-- Los README locales describen las rutas y el entrypoint centralizados. La construcción del wheel y la ejecución integrada quedan pendientes porque `uv`, FastAPI y las dependencias frontend no están instaladas en el entorno.
+- Python se administra desde un workspace `uv` raíz con `services/api/` como miembro y un único `uv.lock`; se retiraron el lock anidado, `requirements.txt`, la metadata Node vacía y el paquete Python raíz de plantilla.
+- `uv lock --check`, `uv sync`, el build del wheel de API, `/health`, `/openapi.json` y el análisis del CSV pasaron. Las apps Next.js mantienen sus propios proyectos npm.
 
 ---
 
