@@ -81,6 +81,103 @@
 
 ---
 
+## Hito 4: Gestión de Proveedores (Supplier Directory) ✅
+
+**Objetivo:** Backend API REST + Frontend Next.js para el directorio de proveedores de HealthCore, permitiendo CRUD con filtros por país, categoría y estado.
+
+### Deliverables — Backend (FastAPI + TinyDB)
+
+| Archivo | Descripción | Estado |
+|---------|-------------|--------|
+| `services/api/requirements.txt` | Dependencias Python (añadido `tinydb>=4.8.0`) | ✅ |
+| `services/api/pyproject.toml` | Configuración uv con dependencias declaradas | ✅ |
+| `services/api/app/models/suppliers.py` | Schemas Pydantic v2: enums, modelos Create/Response/Document | ✅ |
+| `services/api/app/database.py` | Wrapper TinyDB: suppliers_table, count, is_empty | ✅ |
+| `services/api/seed.py` | Carga inicial de 12 proveedores (idempotente) | ✅ |
+| `services/api/app/routers/suppliers.py` | Router con 6 endpoints CRUD + filtros | ✅ |
+| `services/api/app/main.py` | Entrypoint FastAPI con router registrado | ✅ |
+
+### Deliverables — Frontend (Next.js + Tailwind)
+
+| Archivo | Descripción | Estado |
+|---------|-------------|--------|
+| `uis/backoffice/app/suppliers/page.tsx` | Página de directorio de proveedores | ✅ |
+| `uis/backoffice/app/layout.tsx` | Navbar con enlace "Suppliers" | ✅ |
+
+### Modelo de datos
+
+| Campo | Tipo | Validación |
+|-------|------|------------|
+| `id` | `int` (auto-generado) | — |
+| `name` | `string` | Obligatorio |
+| `country` | `string` | Solo `US` o `UK` |
+| `categories` | `list[SupplierCategory]` | 5 categorías válidas (ver abajo) |
+| `rate` | `float` | Debe ser > 0 |
+| `status` | `SupplierStatus` | `active` o `suspended` |
+| `updated_at` | `datetime` (UTC) | Auto-asignado al crear y al actualizar rate |
+
+### Categorías de proveedor
+
+| Categoría | Descripción |
+|-----------|-------------|
+| `MEDICAL_SUPPLIES` | Suministros médicos |
+| `PHARMACEUTICALS` | Productos farmacéuticos |
+| `MEDICAL_EQUIPMENT` | Equipamiento médico |
+| `IT_SERVICES` | Servicios de TI |
+| `ADMINISTRATIVE` | Servicios administrativos |
+
+### Endpoints de la API
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `POST` | `/suppliers` | Crear nuevo proveedor (201) |
+| `GET` | `/suppliers` | Listar proveedores (filtros opcionales: `country`, `category`, `status`) |
+| `GET` | `/suppliers/{id}` | Obtener proveedor por ID (404 si no existe) |
+| `PATCH` | `/suppliers/{id}/rate` | Actualizar rate (422 si <= 0) |
+| `PATCH` | `/suppliers/{id}/status` | Cambiar estado (solo `active`/`suspended`) |
+| `DELETE` | `/suppliers/{id}` | Eliminar proveedor (204) |
+
+### Seed data (12 proveedores iniciales)
+
+- **8 activos**: MedSupply Texas LLC (US), PharmaCare Solutions (US), HealthTech Equipment (US), CloudMed IT Services (UK), OfficePro Admin Supplies (US), UK Pharma Distributors (UK), London Medical Supplies (UK), Atlantic Healthcare IT (US), Florida Pharma Group (US), Manchester MedEquipment (UK)
+- **2 suspendidos US**: GlobalScan Imaging, CleanCare Administrative
+- **2 suspendidos UK**: (incluidos en los 12 totales)
+
+### Funcionalidades del frontend
+
+- Tabla completa con todos los proveedores
+- Filtros por país (US/UK) y categoría
+- Formulario de registro modal/inline
+- Edición inline de rate (con confirmación vía input numérico)
+- Botones de toggle de estado (active/suspended) con confirmación
+- Eliminación con confirmación
+- Codificación visual: fondo gris para suspendidos, badges verde/rojo para estado
+- Indicadores de carga (disabled state durante operaciones)
+
+### Pruebas realizadas
+- ✅ Listar todos los proveedores (GET /suppliers)
+- ✅ Filtros por país y categoría
+- ✅ GET por ID y 404 para IDs inexistentes
+- ✅ POST crea con 201 y validación 422
+- ✅ PATCH rate actualiza y registra timestamp
+- ✅ PATCH rate inválido devuelve 422
+- ✅ PATCH status cambia correctamente
+- ✅ PATCH status inválido devuelve 422
+- ✅ DELETE devuelve 204 con confirmación
+- ✅ DELETE en ID inexistente devuelve 404
+- ✅ Seed idempotente (se salta si ya hay datos)
+- ✅ Compilación frontend exitosa (Next.js build)
+
+### Decisiones técnicas
+- TinyDB como base de datos embebida (sin servidor externo)
+- Pydantic v2 para doble validación (API input + seed)
+- `uv run python seed.py` para cargar datos iniciales
+- `window.confirm` no es estándar → se usa `confirm()` nativo de JS
+- Edición inline de rate en lugar de `window.prompt` (no estándar)
+- Tailwind CSS via PostCSS (configuración existente del backoffice)
+
+---
+
 ## Infraestructura de agente ✅
 
 ### Banco de memoria (`memory-bank/`)
