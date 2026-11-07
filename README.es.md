@@ -312,8 +312,8 @@ Esta sección documenta la **infraestructura específica de HealthCore** constru
 | Ruta | Descripción | Stack Tecnológico |
 |------|-------------|-------------------|
 | [`uis/website/`](./uis/website/) | Sitio web corporativo público (bilingüe EN/ES) | HTML5, Tailwind CSS v4 CDN, Schema.org JSON-LD |
-| [`uis/backoffice/`](./uis/backoffice/) | Panel de control interno con KPIs departamentales + analizador de incidentes | Next.js 16, TypeScript, Tailwind CSS + PostCSS |
-| [`services/api/`](./services/api/) | Backend FastAPI centralizado | FastAPI, Pydantic v2, Uvicorn |
+| [`uis/backoffice/`](./uis/backoffice/) | Panel de control interno con KPIs departamentales + analizador de incidentes + **directorio de proveedores** | Next.js 16, TypeScript, Tailwind CSS + PostCSS |
+| [`services/api/`](./services/api/) | Backend FastAPI centralizado con **API de gestión de proveedores** | FastAPI, Pydantic v2, Uvicorn, TinyDB |
 
 ### Analizador de Incidentes (Incident Analyzer)
 
@@ -341,6 +341,35 @@ Herramienta de análisis de datos para procesar y validar registros de incidente
 - Desglose por estado (OPEN, CLOSED, DISCARDED)
 - Distribución por país (US, UK)
 - Puntuación media de satisfacción y distribución (1–5)
+
+### Directorio de Proveedores (Supplier Directory)
+
+Sistema de gestión de proveedores que reemplaza la hoja de cálculo anterior. Construido con **FastAPI + TinyDB + Pydantic** en el backend y **Next.js** en el frontend.
+
+| Componente | Ruta | Descripción |
+|------------|------|-------------|
+| **Modelos Pydantic** | [`services/api/models.py`](./services/api/models.py) | `SupplierCreate`, `SupplierResponse`, `SupplierDocument`, `RateUpdate`, `StatusUpdate` con validaciones |
+| **Base de datos** | [`services/api/database.py`](./services/api/database.py) | Wrapper TinyDB con tabla `suppliers` en `data/suppliers.json` |
+| **Seeder** | [`services/api/seed.py`](./services/api/seed.py) | Carga 12 proveedores iniciales de `Company-BRIEFING.md`. Ejecutable con `uv run python seed.py` |
+| **API REST** | [`services/api/routes/suppliers.py`](./services/api/routes/suppliers.py) | CRUD completo: POST, GET (con filtros), PATCH rate/status, DELETE |
+| **Frontend** | [`uis/backoffice/app/suppliers/page.tsx`](./uis/backoffice/app/suppliers/page.tsx) | Página Next.js con tabla, filtros, formulario de registro, edición inline de tarifa y cambio de estado |
+
+**Endpoints:**
+- `POST /suppliers` — Registrar proveedor (201/422)
+- `GET /suppliers` — Listar con filtros `?country=` y `?category=`
+- `GET /suppliers/{id}` — Detalle (200/404)
+- `PATCH /suppliers/{id}/rate` — Actualizar tarifa (200/404/422)
+- `PATCH /suppliers/{id}/status` — Activar/suspender (200/404/422)
+- `DELETE /suppliers/{id}` — Eliminar (204/404)
+
+**Validaciones Pydantic (antes de TinyDB):**
+- `rate > 0` — rechaza 0 y negativos con 422
+- `country` debe ser `US` o `UK`
+- `categories` mínimo 1 de 5 valores permitidos
+- `status` solo `active` o `suspended` (Enum)
+- `updated_at` generado por el sistema
+
+**Proveedores iniciales (12):** MedSupply Texas LLC, PharmaCare Solutions, HealthTech Equipment, CloudMed IT Services, OfficePro Admin Supplies, UK Pharma Distributors, GlobalScan Imaging (suspendido), London Medical Supplies, Atlantic Healthcare IT, CleanCare Administrative (suspendido), Florida Pharma Group, Manchester MedEquipment.
 
 ### Paleta de colores
 

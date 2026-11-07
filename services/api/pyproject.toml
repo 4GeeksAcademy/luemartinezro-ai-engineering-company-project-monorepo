@@ -1,0 +1,13 @@
+[project]
+name = "healthcore-api"
+version = "0.1.0"
+description = "HealthCore Central API — FastAPI backend"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.0",
+    "pydantic>=2.0.0",
+    "python-multipart>=0.0.12",
+    "tinydb>=4.8.0",
+]
+
