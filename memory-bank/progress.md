@@ -1,7 +1,7 @@
 # Progress — HealthCore Digital
 
 > Estado actual del desarrollo, decisiones recientes y próximos pasos.
-> Actualizado: 2026-10-14
+> Actualizado: 2026-11-07
 
 ---
 
@@ -22,17 +22,18 @@
 
 | Archivo | Descripción | Estado |
 |---------|-------------|--------|
-| `index.html` | Landing page en inglés | ✅ |
-| `index.es.html` | Landing page en español | ✅ |
-| `application.html` | Formulario de consulta en inglés | ✅ |
-| `application.es.html` | Formulario de consulta en español | ✅ |
-| `validation.js` | Validación compartida (inglés/español) | ✅ |
+| `uis/website/app/page.tsx` y `app/es/page.tsx` | Landing pages en inglés y español (rutas `/` y `/es`) | ✅ |
+| `uis/website/app/application/page.tsx` y `app/es/application/page.tsx` | Formularios de consulta demo bilingües | ✅ |
+| `uis/website/app/utilities/page.tsx` y `app/es/utilities/page.tsx` | Showcase bilingüe de utilidades del Hito 2 | ✅ |
+| `index.html`, `index.es.html`, `application.html`, `application.es.html` | Archivos HTML de la raíz eliminados tras migrar sus funciones a Next.js | ✅ |
 
 ### Decisiones tomadas
-- Tailwind CSS vía CDN para estilos (sin CSS personalizado)
+- (Histórica, supersedida) Tailwind CSS vía CDN para estilos; el estándar vigente exige Next.js para todo frontend (ver `techContext.md` y `.agents/rules/frontend-nextjs.md`).
 - Archivos separados por idioma (no toggle JS)
 - Schema.org structured data para SEO
 - Validación con mensajes localizados por idioma
+- Migración completada: el sitio público soportado ahora es `uis/website` (Next.js App Router); el formulario solo valida en el navegador y no envía ni persiste datos.
+- El showcase de utilidades en `/utilities` y `/es/utilities` reutiliza los modelos y funciones de `src/`, incluyendo claims, citas sin asistencia, búsquedas, CME, validaciones y umbrales.
 
 ### Ver más
 - [README_MILESTONE1.md](../README_MILESTONE1.md)
@@ -79,6 +80,13 @@
 ### API consumida
 - `https://playground.4geeks.com/tracker/api/v1`
 
+### Fix de navegación y API (2026-11-07)
+
+- El enlace Careers ahora deriva el puerto 3003 en Codespaces, usa localhost en desarrollo local y permite `NEXT_PUBLIC_TALENT_TRACKER_URL` como override.
+- El cliente del tracker usa la URL oficial como fallback cuando `NEXT_PUBLIC_API_URL` no está configurada. La API respondió y reportó 103 candidatos; no se añadieron datos dummy.
+- Los hooks de candidatos, detalle y notas reflejan la petición vigente, cancelan respuestas obsoletas y permiten reintentos sin actualizaciones síncronas desde efectos.
+- Verificados builds de website y tracker, rutas HTTP `/, /utilities, /es/utilities` y `/`, y el enlace Careers en el HTML servido.
+
 ---
 
 ## Hito 4: Gestión de Proveedores (Supplier Directory) ✅
@@ -89,7 +97,6 @@
 
 | Archivo | Descripción | Estado |
 |---------|-------------|--------|
-| `services/api/requirements.txt` | Dependencias Python (añadido `tinydb>=4.8.0`) | ✅ |
 | `services/api/pyproject.toml` | Configuración uv con dependencias declaradas | ✅ |
 | `services/api/app/models/suppliers.py` | Schemas Pydantic v2: enums, modelos Create/Response/Document | ✅ |
 | `services/api/app/database.py` | Wrapper TinyDB: suppliers_table, count, is_empty | ✅ |
@@ -218,18 +225,18 @@
 
 ## Incident Analyzer (HealthCore) ✅
 
-**Objetivo:** procesar el CSV de incidencias de pacientes (`incidents-healthcore.csv`) y producir el resumen de métricas definido en el BRIEFING.
+**Objetivo:** procesar el CSV de incidencias de pacientes (`data/incidents-healthcore.csv`) y producir el resumen de métricas definido en el BRIEFING.
 
 ### Deliverables
 
 | Archivo | Descripción | Estado |
 |---------|-------------|--------|
 | `services/api/app/analyzer.py` | Lógica compartida: carga tolerante a delimitador, validación, métricas | ✅ |
-| `scripts/analyze.py` | CLI: reporte formateado + export a `results.csv` | ✅ |
+| `scripts/analyze.py` | CLI: reporte formateado + export a `data/results.csv` | ✅ |
 | `services/api/app/routers/incidents.py` | `POST /api/incidents/analyze`, `GET /api/incidents/results/export` | ✅ |
 | `uis/backoffice/app/incidents/page.tsx` | Página de subida y visualización del análisis | ✅ |
-| `incidents-healthcore.csv` | Input normalizado a comas (estándar del BRIEFING) | ✅ |
-| `results.csv` | Output separado por comas (`metric,value,percentage`) | ✅ |
+| `data/incidents-healthcore.csv` | Input normalizado a comas (estándar del BRIEFING) | ✅ |
+| `data/results.csv` | Output separado por comas (`metric,value,percentage`) | ✅ |
 
 ### Fix: verificación de CSV con delimitadores (2026-10-28)
 
@@ -237,6 +244,20 @@
 - **Solución:** detección automática de delimitador con `try-except` (`csv.Sniffer` + fallbacks), mapeo de columnas por nombre de cabecera y reconstrucción de filas separadas por espacios (ancladas en el esquema).
 - **Resultado:** acepta comas, tabulaciones y espacios; los tres formatos producen los valores exactos del BRIEFING (100 / 94 válidos / 6 inválidos, avg 3.58).
 - **Input corregido:** se eliminó una columna fantasma inicial y se convirtió de tabs a comas.
+
+### Reubicación de archivos CSV (2026-11-07)
+
+- Los archivos de entrada y salida se mantienen en `data/`; el CLI usa esas rutas por defecto y acepta una ruta de entrada opcional.
+- Verificada la salida del análisis: 100 registros, 94 válidos, 6 inválidos y promedio de satisfacción 3.58.
+
+## Consolidación estructural (2026-11-07)
+
+- `services/api/app/main.py` es la única aplicación FastAPI; `services/api/main.py` queda como reexportación de compatibilidad.
+- El seeder y el router utilizan los módulos de proveedores bajo `app/`; se retiraron los módulos planos duplicados.
+- La gestión de proveedores queda concentrada en `uis/backoffice`; se eliminó `uis/application` y las copias estáticas del sitio dentro de `uis/backoffice/public/`.
+- Se conservan las páginas heredadas de `uis/website/` y `src/`; se eliminó el scaffold `services/api/src/api/` y `pyproject.toml` configura `uv_build` para empaquetar el módulo `app`.
+- Python se administra desde un workspace `uv` raíz con `services/api/` como miembro y un único `uv.lock`; se retiraron el lock anidado, `requirements.txt`, la metadata Node vacía y el paquete Python raíz de plantilla.
+- `uv lock --check`, `uv sync`, el build del wheel de API, `/health`, `/openapi.json` y el análisis del CSV pasaron. Las apps Next.js mantienen sus propios proyectos npm.
 
 ---
 
@@ -271,7 +292,7 @@
 
 | Fecha | Decisión |
 |-------|----------|
-| 2026-10-28 | **Fix Incident Analyzer:** parser de CSV tolerante a delimitador (comas/tabs/espacios) con detección automática + mapeo por nombre de columna; input `incidents-healthcore.csv` normalizado a comas; `results.csv` regenerado. |
+| 2026-10-28 | **Fix Incident Analyzer:** parser de CSV tolerante a delimitador (comas/tabs/espacios) con detección automática + mapeo por nombre de columna; input `data/incidents-healthcore.csv` normalizado a comas; `data/results.csv` regenerado. |
 | 2026-10-26 | **Fix backoffice:** la URL de la API (`http://localhost:8000` hardcodeada) se reemplazó por resolución dinámica en `uis/backoffice/lib/api.ts` + override `NEXT_PUBLIC_API_URL`. Funciona en local, Codespaces y despliegues (ADR-007). |
 | 2026-10-14 | Borrador de propuesta de arquitectura backend creado en `docs/ARCHITECTURE_PROPOSAL.md`; nuevas decisiones pendientes de aprobación, sin cambios al backend |
 | 2026-10-02 | Creación del banco de memoria (`memory-bank/`) con contexto de negocio, técnico y progreso |

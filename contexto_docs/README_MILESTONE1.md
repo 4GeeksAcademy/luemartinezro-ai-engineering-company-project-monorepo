@@ -19,17 +19,11 @@ This milestone follows the requirements defined in [CONTEXT.en.md](./CONTEXT.en.
 
 ---
 
-## Deliverables
+## Deliverables (historical implementation)
 
-The following files were created at the repository root:
+The milestone was originally implemented as four standalone HTML pages at the repository root. Those root pages have since been removed after their public-site behavior was migrated to `uis/website`, a Next.js App Router application. The current routes are `/`, `/es`, `/application`, and `/es/application`; the migrated form is a browser-only demonstration and does not send or persist enquiries. A bilingual utilities showcase is also available at `/utilities` and `/es/utilities`.
 
-- [index.html](./index.html): English landing page
-- [index.es.html](./index.es.html): Spanish landing page
-- [application.html](./application.html): English patient enquiry form
-- [application.es.html](./application.es.html): Spanish patient enquiry form
-- [validation.js](./validation.js): Shared client-side validation logic for both form pages
-
-No custom stylesheet was added because the implementation is fully handled with Tailwind CSS via CDN, which matches the prompt requirements.
+This document retains the original HTML milestone requirements and validation notes as historical project context. The current frontend standard is Next.js + TypeScript/TSX + Tailwind CSS; do not recreate the removed root HTML pages.
 
 ---
 
@@ -123,20 +117,22 @@ The resulting interface aims to feel clinical, trustworthy, modern, and professi
 
 ---
 
-## How To Run Locally
+## How To Run The Current Website Locally
 
 From the repository root, run:
 
 ```bash
-npx --yes http-server . -p 3000 -a 0.0.0.0
+npm run dev
 ```
 
-Then open:
+The root script starts the Next.js app in `uis/website` on port 3002. Open:
 
-- `http://127.0.0.1:3000/index.html`
-- `http://127.0.0.1:3000/index.es.html`
-- `http://127.0.0.1:3000/application.html`
-- `http://127.0.0.1:3000/application.es.html`
+- `http://localhost:3002/`
+- `http://localhost:3002/es`
+- `http://localhost:3002/application`
+- `http://localhost:3002/es/application`
+- `http://localhost:3002/utilities`
+- `http://localhost:3002/es/utilities`
 
 ---
 

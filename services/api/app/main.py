@@ -7,6 +7,7 @@ Now with authentication, users, and profiles modules.
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 
 from app.core.settings import settings
 from app.db.tinydb import init_db
@@ -54,3 +55,7 @@ app.include_router(users_router)
 app.include_router(profiles_router)
 app.include_router(incidents.router)
 app.include_router(suppliers.router)
+
+
+def start() -> None:
+    uvicorn.run(app, host="0.0.0.0", port=8000)

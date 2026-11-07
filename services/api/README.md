@@ -19,7 +19,7 @@ Proporcionar una API unificada que exponga datos de pacientes, citas, facturaci�
 | Base de datos      | **TinyDB** (JSON embebido, migración a Postgres planificada) |
 | Validación         | **Pydantic v2** con Enums, field validators y modelos separados input/response |
 | Documentación      | Swagger UI (OpenAPI) en `/docs`                  |
-| Ejecución          | `uvicorn main:app --reload` o `uvicorn app.main:app --reload` |
+| Ejecución          | `uv run --package api uvicorn app.main:app --reload` |
 
 ---
 
@@ -117,15 +117,17 @@ Cliente                    API (FastAPI)
 services/api/
 ├── .env                          # Variables de entorno local
 ├── .env.example                  # Plantilla de variables de entorno
+├── main.py                       # Compatibilidad: reexporta app.main:app
+├── seed.py                       # Carga inicial de proveedores
 ├── pyproject.toml                # Proyecto Python (uv)
-├── uv.lock                       # Lock de dependencias
-├── requirements.txt              # Dependencias legacy
 ├── README.md                     # Este archivo
 ├── data/
-│   └── tinydb.json               # Base de datos TinyDB (auto-creada)
+│   ├── tinydb.json               # Usuarios y perfiles (auto-creada)
+│   └── suppliers.json            # Proveedores (auto-creada)
 └── app/
     ├── __init__.py
     ├── main.py                   # Composición: CORS, routers, health check
+    ├── database.py               # Persistencia y consultas de proveedores
     ├── data.py                   # Datos en memoria (clínicas, departamentos)
     │
     ├── core/                     # ▲ Capa transversal
@@ -159,12 +161,14 @@ services/api/
     │
     ├── models/                   # Schemas compartidos (legacy)
     │   ├── __init__.py
-    │   └── schemas.py            # ClinicLocation, Department, HealthResponse
+    │   ├── schemas.py            # ClinicLocation, Department, HealthResponse
+    │   └── suppliers.py          # Supplier schemas
     │
     └── routers/                  # Routers legacy (ahora protegidos)
         ├── __init__.py
         ├── clinics.py            # Endpoints protegidos con Depends(get_current_user)
-        └── departments.py        # Endpoints protegidos con Depends(get_current_user)
+      ├── departments.py        # Endpoints protegidos con Depends(get_current_user)
+      └── suppliers.py          # CRUD de proveedores
 ```
 
 ---
@@ -269,14 +273,14 @@ services/api/
 
 ```bash
 cd services/api
-uv run uvicorn main:app --reload --port 8000
+uv run --package api uvicorn app.main:app --reload --port 8000
 ```
 
 ### Versión empaquetada (app/)
 
 ```bash
 cd services/api
-uv run uvicorn app.main:app --reload --port 8000
+uv run --package api uvicorn app.main:app --reload --port 8000
 ```
 
 La documentación interactiva estará disponible en:

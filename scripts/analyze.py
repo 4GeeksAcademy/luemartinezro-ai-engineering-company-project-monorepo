@@ -3,7 +3,10 @@
 HealthCore — Patient Incident Report Analyzer (CLI)
 
 Usage:
-    python analyze.py incidents-healthcore.csv
+    python scripts/analyze.py [path-to-csv]
+
+When no path is provided, reads data/incidents-healthcore.csv and exports
+results to data/results.csv when requested.
 
 Reads a CSV of patient incidents (comma-, tab- or whitespace-separated;
 the delimiter is detected automatically), validates records, computes
@@ -17,6 +20,11 @@ Reuses shared analysis logic from services/api/app/analyzer.py.
 import csv
 import os
 import sys
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+DEFAULT_INPUT = os.path.join(DATA_DIR, "incidents-healthcore.csv")
+DEFAULT_OUTPUT = os.path.join(DATA_DIR, "results.csv")
 
 # Import shared analysis logic from the service layer
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "services", "api"))
@@ -109,7 +117,7 @@ def print_report(result: dict) -> None:
 
 # ── CSV Export ─────────────────────────────────────────────────────────────
 
-def export_csv(result: dict, filepath: str = "results.csv") -> None:
+def export_csv(result: dict, filepath: str = DEFAULT_OUTPUT) -> None:
     """Export analysis results to a CSV file (one row per metric)."""
     with open(filepath, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
@@ -156,11 +164,11 @@ def export_csv(result: dict, filepath: str = "results.csv") -> None:
 # ── Main ───────────────────────────────────────────────────────────────────
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python analyze.py <path-to-csv>")
+    if len(sys.argv) > 2:
+        print("Usage: python analyze.py [path-to-csv]")
         sys.exit(1)
 
-    filepath = sys.argv[1]
+    filepath = sys.argv[1] if len(sys.argv) == 2 else DEFAULT_INPUT
 
     if not os.path.isfile(filepath):
         print(f"ERROR: File not found: {filepath}")

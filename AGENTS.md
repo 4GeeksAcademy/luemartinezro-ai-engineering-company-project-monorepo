@@ -21,7 +21,7 @@ Al inicio de **cada sesión**, el agente DEBE leer los siguientes archivos en es
 
 | Orden | Archivo | Propósito |
 |-------|---------|-----------|
-| 4 | `.agents/rules/*.md` | Reglas de desarrollo activas (con alcance: siempre, por patrón o por invocación) |
+| 4 | `.agents/rules/*.md` | Reglas de desarrollo activas (con alcance: siempre, por patrón o por invocación). Incluye `frontend-nextjs.md`, obligatorio para cualquier interfaz. |
 
 ### 1.3 Contexto de empresa
 
@@ -58,7 +58,7 @@ El agente DEBE seguir estos **6 pasos** en orden antes de crear cualquier commit
 ### Paso 3: Implementar
 - ✅ Escribir el código siguiendo las convenciones del proyecto
 - ✅ Respetar la paleta cromática HealthCore (`brand-50` a `brand-800`)
-- ✅ Usar Tailwind CSS vía CDN para la web pública — sin CSS personalizado ni estilos inline
+- ✅ Implementar todo frontend con Next.js, TypeScript y componentes TSX; usar clases Tailwind, sin páginas HTML independientes ni CSS personalizado/inline
 - ✅ Seguir la estructura de carpetas del monorepo (no crear archivos sueltos en la raíz)
 - ✅ Incluir comentarios y documentación inline donde sea necesario
 
@@ -108,7 +108,7 @@ El agente DEBE seguir estos **6 pasos** en orden antes de crear cualquier commit
 
 | Ruta | Condición |
 |------|-----------|
-| `index.html`, `index.es.html`, `application.html`, `application.es.html` | Archivos raíz del Hito 1. Se migrarán a `uis/website/` — no eliminar hasta que la migración esté completa y verificada. |
+| `index.html`, `index.es.html`, `application.html`, `application.es.html` | Archivos históricos del Hito 1; ya eliminados de la raíz tras migrar el sitio público y sus funciones de demostración a Next.js en `uis/website`. |
 | `validation.js` | Lógica de validación compartida del Hito 1. No mover sin actualizar todas las referencias. |
 | `README_MILESTONE1.md` | Documentación del Hito 1. Mantener como referencia histórica. |
 

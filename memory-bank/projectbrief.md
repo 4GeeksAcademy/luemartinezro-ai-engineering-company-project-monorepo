@@ -80,11 +80,12 @@ Construir los sistemas, flujos de trabajo y herramientas inteligentes que permit
 
 | Capa | Tecnología |
 |------|-----------|
-| **Frontend web pública** | HTML + Tailwind CSS (CDN) + TypeScript |
-| **Frontend aplicaciones** | Next.js + TypeScript + Tailwind CSS |
+| **Todo el frontend** | Next.js (App Router) + TypeScript/TSX + Tailwind CSS v4 (PostCSS) |
 | **Backend API** | FastAPI (Python) |
 | **Tipos compartidos** | TypeScript (`@repo/shared-types`) |
-| **Estilos** | Tailwind CSS vía CDN — sin archivos CSS personalizados ni estilos inline |
+| **Estilos** | Clases utilitarias de Tailwind; no escribir CSS personalizado ni estilos inline |
+
+> **Regla de frontend:** Toda interfaz nueva o modificada se implementa en Next.js. No crear páginas HTML independientes ni escribir CSS; los componentes visuales se escriben en TSX y se estilizan con clases Tailwind. El HTML existente es legado y no debe ampliarse.
 
 ---
 
