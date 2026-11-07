@@ -29,7 +29,7 @@
 | `validation.js` | Validación compartida (inglés/español) | ✅ |
 
 ### Decisiones tomadas
-- Tailwind CSS vía CDN para estilos (sin CSS personalizado)
+- (Histórica, supersedida) Tailwind CSS vía CDN para estilos; el estándar vigente exige Next.js para todo frontend (ver `techContext.md` y `.agents/rules/frontend-nextjs.md`).
 - Archivos separados por idioma (no toggle JS)
 - Schema.org structured data para SEO
 - Validación con mensajes localizados por idioma

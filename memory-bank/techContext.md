@@ -6,28 +6,19 @@
 
 ## 1. Stack tecnológico
 
-### 1.1 Frontend — Web pública (`uis/website/`)
+### 1.1 Frontend — Todas las interfaces de usuario (`uis/`)
 
 | Componente | Tecnología |
 |-----------|-----------|
-| **Lenguaje** | HTML5 semántico + TypeScript |
-| **Estilos** | Tailwind CSS v4 vía CDN |
-| **Validación** | JavaScript nativo (`validation.js`) |
-| **Despliegue** | Vite (static site), servido con `http-server` |
-| **Idiomas** | Inglés (`index.html`) y Español (`index.es.html`) |
-
-> ⚠️ **Regla:** No usar archivos CSS personalizados ni estilos inline. Todo el estilo se define con clases Tailwind cargadas desde `https://cdn.tailwindcss.com`.
-
-### 1.2 Frontend — Aplicaciones internas (`uis/backoffice/`, `uis/talent-pipeline-tracker/`)
-
-| Componente | Tecnología |
-|-----------|-----------|
-| **Framework** | Next.js 16 (App Router) |
+| **Framework** | Next.js 16 (App Router) para todo frontend nuevo o modificado |
 | **Lenguaje** | TypeScript 5.x |
-| **Estilos** | Tailwind CSS v4 + PostCSS |
+| **Estilos** | Tailwind CSS v4 + PostCSS, usando clases utilitarias |
 | **Fuentes** | Geist (Geist Sans + Geist Mono) |
+| **Presentación** | Componentes React en `.tsx`; no crear páginas HTML independientes ni escribir CSS personalizado |
 
-### 1.3 Backend (`services/`)
+> ⚠️ **Regla obligatoria:** Todo frontend debe implementarse en Next.js. No crear ni ampliar frontends como archivos `.html` independientes, ni usar CSS personalizado (archivos `.css`, bloques `<style>` o estilos inline). Usar componentes `.tsx` y clases utilitarias de Tailwind. Las páginas HTML/CSS heredadas son únicamente artefactos históricos; cualquier evolución funcional debe hacerse en Next.js.
+
+### 1.2 Backend (`services/`)
 
 | Componente | Tecnología |
 |-----------|-----------|
@@ -35,7 +26,7 @@
 | **ORM / Base de datos** | Por definir según milestone |
 | **Workers** | Por definir según necesidad |
 
-### 1.4 Tipos compartidos
+### 1.3 Tipos compartidos
 
 | Paquete | Ruta |
 |---------|------|
@@ -51,17 +42,17 @@
 - **Decisión:** Usar un monorepo con carpetas de primer nivel que reflejan responsabilidades únicas (`uis/`, `services/`, `agents/`, `skills/`, `data/`, `infra/`, etc.).
 - **Consecuencia:** Cada aplicación/service/agente tiene su propia subcarpeta con README, tests y configuración independiente.
 
-### ADR-002: Tailwind CSS vía CDN para web pública
+### ADR-002: Next.js y Tailwind para todo frontend
 
-- **Contexto:** La web pública de HealthCore necesita carga rápida y consistencia visual sin añadir complejidad de build.
-- **Decisión:** Usar Tailwind CSS desde CDN (`https://cdn.tailwindcss.com`) para la web pública. No crear archivos CSS personalizados ni usar estilos inline.
-- **Consecuencia:** Las páginas estáticas se sirven sin paso de compilación CSS. La configuración de Tailwind se declara inline en `<script>`.
+- **Contexto:** Mantener una arquitectura uniforme, tipada y componible para todas las interfaces de usuario del monorepo.
+- **Decisión:** Todo frontend nuevo o modificado se implementa con Next.js (App Router), TypeScript/TSX y Tailwind CSS integrado al build mediante PostCSS. No crear páginas frontend independientes en HTML ni escribir CSS personalizado o estilos inline.
+- **Consecuencia:** La web pública y las aplicaciones internas siguen el mismo stack. Los archivos HTML/CSS existentes se consideran legado y no deben ampliarse; sus funcionalidades se migran a Next.js cuando corresponda.
 
-### ADR-003: Next.js para aplicaciones internas
+### ADR-003: Next.js como framework estándar de frontend
 
-- **Contexto:** Las aplicaciones de backoffice requieren lógica de frontend más compleja, formularios, estados asíncronos y consumo de APIs.
-- **Decisión:** Usar Next.js 16 con App Router para las aplicaciones internas. TypeScript estricto.
-- **Consecuencia:** Separación clara entre web pública (estática) y aplicaciones internas (dinámicas).
+- **Contexto:** Todas las interfaces requieren un framework común, incluso la web pública.
+- **Decisión:** Usar Next.js 16 con App Router y TypeScript estricto para todas las aplicaciones frontend.
+- **Consecuencia:** Se elimina la distinción de stack entre web pública estática y aplicaciones internas dinámicas.
 
 ### ADR-004: FastAPI como API centralizada
 
@@ -138,7 +129,7 @@
 | Sistema | Propósito | Estado |
 |---------|-----------|--------|
 | **Talent Tracker API** | Backend de reclutamiento (mock) | `https://playground.4geeks.com/tracker/api/v1` |
-| **Tailwind CSS CDN** | Estilos web pública | Activo |
+| **Tailwind CSS + PostCSS** | Estilos de todos los frontends Next.js | Activo |
 | **EHR EE.UU.** | Historia clínica (plataforma externa) | No integrada aún |
 | **EHR Reino Unido** | Historia clínica (plataforma externa) | No integrada aún |
 
@@ -147,11 +138,11 @@
 ## 5. Rutas clave del monorepo
 
 ```
-/ -> landing pages bilingües (website público raíz — migrar a uis/website/)
+/ -> contiene páginas HTML heredadas; el frontend vigente debe implementarse en Next.js
 ├── .agents/          -> Reglas y skills para agentes de IA
 ├── memory-bank/      -> Banco de memoria del proyecto
 ├── uis/
-│   ├── website/      -> Web pública corporativa
+│   ├── website/      -> Web pública corporativa (migrar legado HTML a Next.js)
 │   └── backoffice/   -> Aplicación interna de administración
 ├── services/
 │   └── api/          -> API FastAPI centralizada

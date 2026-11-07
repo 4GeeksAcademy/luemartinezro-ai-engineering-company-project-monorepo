@@ -21,7 +21,7 @@ Al inicio de **cada sesión**, el agente DEBE leer los siguientes archivos en es
 
 | Orden | Archivo | Propósito |
 |-------|---------|-----------|
-| 4 | `.agents/rules/*.md` | Reglas de desarrollo activas (con alcance: siempre, por patrón o por invocación) |
+| 4 | `.agents/rules/*.md` | Reglas de desarrollo activas (con alcance: siempre, por patrón o por invocación). Incluye `frontend-nextjs.md`, obligatorio para cualquier interfaz. |
 
 ### 1.3 Contexto de empresa
 
@@ -58,7 +58,7 @@ El agente DEBE seguir estos **6 pasos** en orden antes de crear cualquier commit
 ### Paso 3: Implementar
 - ✅ Escribir el código siguiendo las convenciones del proyecto
 - ✅ Respetar la paleta cromática HealthCore (`brand-50` a `brand-800`)
-- ✅ Usar Tailwind CSS vía CDN para la web pública — sin CSS personalizado ni estilos inline
+- ✅ Implementar todo frontend con Next.js, TypeScript y componentes TSX; usar clases Tailwind, sin páginas HTML independientes ni CSS personalizado/inline
 - ✅ Seguir la estructura de carpetas del monorepo (no crear archivos sueltos en la raíz)
 - ✅ Incluir comentarios y documentación inline donde sea necesario
 
