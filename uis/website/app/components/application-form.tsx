@@ -1,0 +1,110 @@
+"use client";
+
+import { useMemo, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import type { Locale } from "./site-shell";
+
+const clinicHours: Record<string, number> = { "HealthCore Austin Central": 20, "HealthCore Austin North": 19, "HealthCore San Antonio": 18, "HealthCore Miami": 20, "HealthCore Orlando": 18, "HealthCore Atlanta": 19 };
+const messages = {
+  en: { eyebrow: "Patient enquiry", title: "Tell us how to reach you and what you need", required: "Required fields are marked with *", personal: "Personal details", preferences: "Appointment preferences", patientCoverage: "Patient and coverage details", concern: "Health concern", first: "First name", last: "Last name", dob: "Date of birth", email: "Email address", phone: "Phone number", language: "Preferred language", clinic: "Preferred clinic", date: "Preferred date", time: "Preferred time of day", service: "Service needed", firstVisit: "Is this your first visit to HealthCore?", insured: "Do you have health insurance?", yes: "Yes", no: "No", patientId: "Patient ID", patientIdHelp: "Optional for returning patients. Format: HC- followed by 6 alphanumeric characters.", provider: "Insurance provider", memberId: "Member ID", healthConcern: "Brief description of your health concern", consent: "I consent to HealthCore contacting me", submit: "Submit enquiry", clear: "Clear form", before: "Before you submit", beforeItems: ["Use the patient name exactly as it appears on official identification.", "Choose a preferred date on a business day at least 1 business day from today and no more than 60 days ahead.", "If you have insurance, keep your provider name and member ID ready."], intro: "This is a patient enquiry form, not a direct booking tool. In this demo, your information is validated in your browser only and is not sent or saved.", partnership: "Healthcare providers and organisations: contact partnerships@healthcore.com.", select: "Select an option", selectClinic: "Select a clinic", selectTime: "Select a time", selectService: "Select a service", services: ["Primary Care", "Chronic Disease Management", "Specialist Consultation", "Preventive Health", "Women's Health", "Paediatric Care", "Mental Health"], times: ["Morning (7am–12pm)", "Afternoon (12pm–5pm)", "Evening (5pm–8pm)"], errorSummary: "Please review the highlighted fields before submitting.", nameError: "Use 2–50 letters (spaces, apostrophes, and hyphens are allowed).", dobError: "Enter a valid date of birth. The patient must be between 0 and 120 years old.", emailError: "Enter a valid email address.", phoneError: "Include a country code (for example, +1 305 555 0191).", requiredError: "Please complete this field.", dateError: "Choose a business day at least 1 business day from today and no more than 60 days ahead.", pediatricError: "Paediatric Care is for patients under 18. Check the date of birth or choose another service.", providerError: "Enter your insurance provider.", memberError: "Member ID must be 6–20 alphanumeric characters.", patientIdError: "Patient ID must use HC- followed by 6 letters or numbers.", concernError: "Please describe your concern in at least 20 characters.", consentError: "Consent is required to continue.", warning: "Evening requests at {clinic} may be limited because the clinic closes at {hour}:00. This demo cannot check live availability.", demoSuccess: "Demo complete — your entries passed the browser checks, but no data was sent or saved. No enquiry has been received and no appointment is booked.", tryAgain: "Submit another demo enquiry", close: "Close" },
+  es: { eyebrow: "Consulta del paciente", title: "Dinos cómo contactarte y qué necesitas", required: "Los campos obligatorios están marcados con *", personal: "Datos personales", preferences: "Preferencias de cita", patientCoverage: "Datos del paciente y cobertura", concern: "Motivo de consulta", first: "Nombre", last: "Apellido", dob: "Fecha de nacimiento", email: "Correo electrónico", phone: "Número de teléfono", language: "Idioma preferido", clinic: "Clínica preferida", date: "Fecha preferida", time: "Horario preferido", service: "Servicio que necesitas", firstVisit: "¿Es tu primera visita a HealthCore?", insured: "¿Tienes seguro médico?", yes: "Sí", no: "No", patientId: "ID del paciente", patientIdHelp: "Opcional para pacientes que regresan. Formato: HC- seguido de 6 caracteres alfanuméricos.", provider: "Proveedor de seguro", memberId: "Número de miembro", healthConcern: "Descripción breve de tu motivo de salud", consent: "Doy mi consentimiento para que HealthCore se comunique conmigo", submit: "Enviar consulta", clear: "Limpiar formulario", before: "Antes de enviar", beforeItems: ["Usa el nombre del paciente exactamente como aparece en su identificación oficial.", "Elige un día hábil con al menos 1 día hábil desde hoy y no más de 60 días hacia adelante.", "Si tienes seguro médico, ten a mano el nombre del proveedor y el número de miembro."], intro: "Este es un formulario de consulta, no una herramienta de reserva directa. En esta demostración, la información solo se valida en tu navegador; no se envía ni se guarda.", partnership: "Proveedores y organizaciones de salud: contacta partnerships@healthcore.com.", select: "Selecciona una opción", selectClinic: "Selecciona una clínica", selectTime: "Selecciona un horario", selectService: "Selecciona un servicio", services: ["Atención primaria", "Manejo de enfermedades crónicas", "Consulta con especialista", "Salud preventiva", "Salud femenina", "Atención pediátrica", "Salud mental"], times: ["Mañana (7am–12pm)", "Tarde (12pm–5pm)", "Noche (5pm–8pm)"], errorSummary: "Revisa los campos resaltados antes de enviar.", nameError: "Usa entre 2 y 50 letras (se permiten espacios, apóstrofes y guiones).", dobError: "Ingresa una fecha de nacimiento válida. El paciente debe tener entre 0 y 120 años.", emailError: "Ingresa un correo electrónico válido.", phoneError: "Incluye el código del país (por ejemplo, +1 305 555 0191).", requiredError: "Completa este campo.", dateError: "Elige un día hábil con al menos 1 día hábil desde hoy y no más de 60 días hacia adelante.", pediatricError: "La atención pediátrica es para menores de 18 años. Verifica la fecha o elige otro servicio.", providerError: "Ingresa tu proveedor de seguro.", memberError: "El número de miembro debe tener entre 6 y 20 caracteres alfanuméricos.", patientIdError: "El ID debe tener el formato HC- seguido de 6 letras o números.", concernError: "Describe tu motivo de salud con al menos 20 caracteres.", consentError: "Debes dar tu consentimiento para continuar.", warning: "Las solicitudes por la noche en {clinic} pueden tener disponibilidad limitada porque la clínica cierra a las {hour}:00. Esta demostración no puede consultar disponibilidad en vivo.", demoSuccess: "Demostración completada: los datos pasaron las validaciones del navegador, pero no se envió ni guardó información. No se recibió ninguna consulta ni se reservó una cita.", tryAgain: "Enviar otra consulta de demostración", close: "Cerrar" },
+} as const;
+
+const clinics = ["HealthCore Austin Central", "HealthCore Austin North", "HealthCore San Antonio", "HealthCore Miami", "HealthCore Orlando", "HealthCore Atlanta"];
+const common = "w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-700 focus:ring-4 focus:ring-brand-100";
+
+type FieldProps = { id: string; label: string; error?: string; children: ReactNode };
+function Field({ id, label, error, children }: FieldProps) { return <div><label htmlFor={id} className="mb-2 block text-sm font-medium text-slate-700">{label} *</label>{children}{error && <p className="mt-2 text-sm text-rose-700" role="alert">{error}</p>}</div>; }
+
+function ageOn(dateString: string, today: Date) {
+  const birth = new Date(`${dateString}T00:00:00`);
+  if (!dateString || Number.isNaN(birth.getTime()) || birth > today) return null;
+  let age = today.getFullYear() - birth.getFullYear();
+  if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age -= 1;
+  return age >= 0 && age <= 120 ? age : null;
+}
+function parseLocalDate(value: string) { if (!value) return null; const date = new Date(`${value}T00:00:00`); return Number.isNaN(date.getTime()) ? null : date; }
+function isBusinessDay(date: Date) { return date.getDay() !== 0 && date.getDay() !== 6; }
+function addDays(date: Date, count: number) { const result = new Date(date); result.setDate(result.getDate() + count); return result; }
+function isoDate(date: Date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`; }
+
+export function ApplicationForm({ locale }: { locale: Locale }) {
+  const t = messages[locale];
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitted, setSubmitted] = useState(false);
+  const [today] = useState(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; });
+  const firstBusinessDate = useMemo(() => { let d = addDays(today, 1); while (!isBusinessDay(d)) d = addDays(d, 1); return d; }, [today]);
+  const lastDate = addDays(today, 60);
+  const returning = values.new_patient === "No";
+  const insured = values.has_insurance === "Yes";
+  const age = ageOn(values.date_of_birth ?? "", today);
+  const setValue = (name: string, value: string) => { setValues((previous) => ({ ...previous, [name]: value })); setErrors((previous) => ({ ...previous, [name]: "" })); };
+  const update = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setValue(event.target.name, event.target.type === "checkbox" ? ((event.target as HTMLInputElement).checked ? "yes" : "") : event.target.value);
+
+  function validate() {
+    const next: Record<string, string> = {};
+    const namePattern = /^[\p{L}][\p{L} '\u2019-]{0,49}$/u;
+    for (const key of ["first_name", "last_name"]) if (!namePattern.test((values[key] ?? "").trim()) || (values[key] ?? "").trim().length < 2) next[key] = t.nameError;
+    if (age === null) next.date_of_birth = t.dobError;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email ?? "")) next.email = t.emailError;
+    if (!/^\+\d[\d\s().-]{6,}$/.test(values.phone ?? "")) next.phone = t.phoneError;
+    const required = ["preferred_language", "preferred_clinic", "preferred_time", "service_type", "new_patient", "has_insurance"];
+    required.forEach((key) => { if (!values[key]) next[key] = t.requiredError; });
+    const preferred = parseLocalDate(values.preferred_date ?? "");
+    if (!preferred || isoDate(preferred) < isoDate(firstBusinessDate) || isoDate(preferred) > isoDate(lastDate) || !isBusinessDay(preferred)) next.preferred_date = t.dateError;
+    if (values.service_type === "Paediatric Care" && (age === null || age >= 18)) next.service_type = t.pediatricError;
+    if (insured) {
+      if (!(values.insurance_provider ?? "").trim()) next.insurance_provider = t.providerError;
+      if (!/^[A-Za-z0-9]{6,20}$/.test(values.insurance_member_id ?? "")) next.insurance_member_id = t.memberError;
+    }
+    if (returning && values.patient_id && !/^HC-[A-Za-z0-9]{6}$/.test(values.patient_id)) next.patient_id = t.patientIdError;
+    if ((values.health_concern ?? "").trim().length < 20) next.health_concern = t.concernError;
+    if (!values.contact_consent) next.contact_consent = t.consentError;
+    return next;
+  }
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const next = validate(); setErrors(next); if (Object.keys(next).length === 0) setSubmitted(true); };
+  const handleReset = () => { setValues({}); setErrors({}); setSubmitted(false); };
+  const selectedClinic = values.preferred_clinic;
+  const closesAt = selectedClinic ? clinicHours[selectedClinic] : undefined;
+  const eveningWarning = values.preferred_time === t.times[2] && closesAt !== undefined && closesAt < 20;
+
+  if (submitted) return <section className="rounded-[2rem] border-4 border-emerald-700 bg-emerald-600 p-8 text-white shadow-panel sm:p-10" aria-live="assertive" aria-labelledby="demo-success-title"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-100">{locale === "es" ? "Solo demostración" : "Demo only"}</p><h2 id="demo-success-title" className="mt-3 text-2xl font-extrabold sm:text-3xl">{locale === "es" ? "Validación completada" : "Validation complete"}</h2><p className="mt-4 text-lg leading-8">{t.demoSuccess}</p><button type="button" onClick={handleReset} className="mt-8 rounded-full bg-white px-6 py-3 font-semibold text-emerald-800 transition hover:bg-emerald-50">{t.tryAgain}</button></section>;
+
+  return <section className="rounded-[2rem] border border-white/80 bg-white/90 p-6 shadow-panel backdrop-blur sm:p-8" aria-labelledby="enquiry-heading">
+    <div className="mb-8 flex flex-col gap-3 border-b border-slate-200 pb-6 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">{t.eyebrow}</p><h2 id="enquiry-heading" className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">{t.title}</h2></div><p className="text-sm text-slate-500">{t.required}</p></div>
+    {Object.values(errors).some(Boolean) && <p className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-800" role="alert">{t.errorSummary}</p>}
+    {eveningWarning && <p className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900" role="status">{t.warning.replace("{clinic}", selectedClinic).replace("{hour}", String(closesAt))}</p>}
+    <form onSubmit={handleSubmit} onReset={handleReset} noValidate className="space-y-8">
+      <fieldset className="space-y-6"><legend className="text-lg font-semibold text-slate-950">{t.personal}</legend><div className="grid gap-6 md:grid-cols-2">
+        <Field id="first_name" label={t.first} error={errors.first_name}><input className={common} id="first_name" name="first_name" autoComplete="given-name" value={values.first_name ?? ""} onChange={update} aria-invalid={Boolean(errors.first_name)} /></Field>
+        <Field id="last_name" label={t.last} error={errors.last_name}><input className={common} id="last_name" name="last_name" autoComplete="family-name" value={values.last_name ?? ""} onChange={update} aria-invalid={Boolean(errors.last_name)} /></Field>
+        <Field id="date_of_birth" label={t.dob} error={errors.date_of_birth}><input className={common} id="date_of_birth" name="date_of_birth" type="date" max={isoDate(today)} value={values.date_of_birth ?? ""} onChange={update} aria-invalid={Boolean(errors.date_of_birth)} /></Field>
+        <Field id="email" label={t.email} error={errors.email}><input className={common} id="email" name="email" type="email" autoComplete="email" placeholder="name@provider.com" value={values.email ?? ""} onChange={update} aria-invalid={Boolean(errors.email)} /></Field>
+        <Field id="phone" label={t.phone} error={errors.phone}><input className={common} id="phone" name="phone" type="tel" autoComplete="tel" placeholder="+1 305 555 0191" value={values.phone ?? ""} onChange={update} aria-invalid={Boolean(errors.phone)} /></Field>
+        <Field id="preferred_language" label={t.language} error={errors.preferred_language}><select className={common} id="preferred_language" name="preferred_language" value={values.preferred_language ?? ""} onChange={update}><option value="">{t.select}</option><option value="English">English</option><option value="Spanish">Español</option></select></Field>
+      </div></fieldset>
+      <fieldset className="space-y-6"><legend className="text-lg font-semibold text-slate-950">{t.preferences}</legend><div className="grid gap-6 md:grid-cols-2">
+        <Field id="preferred_clinic" label={t.clinic} error={errors.preferred_clinic}><select className={common} id="preferred_clinic" name="preferred_clinic" value={selectedClinic ?? ""} onChange={update}><option value="">{t.selectClinic}</option>{clinics.map((clinic) => <option key={clinic}>{clinic}</option>)}</select></Field>
+        <Field id="preferred_date" label={t.date} error={errors.preferred_date}><input className={common} id="preferred_date" name="preferred_date" type="date" min={isoDate(firstBusinessDate)} max={isoDate(lastDate)} value={values.preferred_date ?? ""} onChange={update} aria-invalid={Boolean(errors.preferred_date)} /></Field>
+        <Field id="preferred_time" label={t.time} error={errors.preferred_time}><select className={common} id="preferred_time" name="preferred_time" value={values.preferred_time ?? ""} onChange={update}><option value="">{t.selectTime}</option>{t.times.map((time, index) => <option key={time} value={["Morning (7am–12pm)", "Afternoon (12pm–5pm)", "Evening (5pm–8pm)"][index]}>{time}</option>)}</select></Field>
+        <Field id="service_type" label={t.service} error={errors.service_type}><select className={common} id="service_type" name="service_type" value={values.service_type ?? ""} onChange={update}><option value="">{t.selectService}</option>{t.services.map((service, index) => <option key={service} value={["Primary Care", "Chronic Disease Management", "Specialist Consultation", "Preventive Health", "Women's Health", "Paediatric Care", "Mental Health"][index]}>{service}</option>)}</select></Field>
+      </div></fieldset>
+      <fieldset className="space-y-6"><legend className="text-lg font-semibold text-slate-950">{t.patientCoverage}</legend><div className="grid gap-6 md:grid-cols-2">
+        {([["new_patient", t.firstVisit], ["has_insurance", t.insured]] as const).map(([name, label]) => <fieldset key={name}><legend className="mb-2 text-sm font-medium text-slate-700">{label} *</legend><div className="flex gap-3">{[["Yes", t.yes], ["No", t.no]].map(([value, text]) => <label key={value} className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm text-slate-700"><input type="radio" name={name} value={value} checked={values[name] === value} onChange={update} className="accent-brand-700" />{text}</label>)}</div>{errors[name] && <p className="mt-2 text-sm text-rose-700" role="alert">{errors[name]}</p>}</fieldset>)}
+      </div>
+      {returning && <Field id="patient_id" label={t.patientId} error={errors.patient_id}><input className={common} id="patient_id" name="patient_id" placeholder="HC-A3F291" value={values.patient_id ?? ""} onChange={update} /><p className="mt-2 text-sm text-slate-500">{t.patientIdHelp}</p></Field>}
+      {insured && <div className="grid gap-6 md:grid-cols-2"><Field id="insurance_provider" label={t.provider} error={errors.insurance_provider}><input className={common} id="insurance_provider" name="insurance_provider" maxLength={100} value={values.insurance_provider ?? ""} onChange={update} /></Field><Field id="insurance_member_id" label={t.memberId} error={errors.insurance_member_id}><input className={common} id="insurance_member_id" name="insurance_member_id" value={values.insurance_member_id ?? ""} onChange={update} /></Field></div>}
+      </fieldset>
+      <fieldset><legend className="mb-2 text-lg font-semibold text-slate-950">{t.concern}</legend><label htmlFor="health_concern" className="mb-2 block text-sm font-medium text-slate-700">{t.healthConcern} *</label><textarea className={common} id="health_concern" name="health_concern" rows={5} maxLength={500} value={values.health_concern ?? ""} onChange={update} aria-invalid={Boolean(errors.health_concern)} /><div className="mt-2 flex items-center justify-between gap-4"><p>{errors.health_concern && <span className="text-sm text-rose-700" role="alert">{errors.health_concern}</span>}</p><p className="text-sm text-slate-500" aria-live="polite">{(values.health_concern ?? "").length} / 500</p></div></fieldset>
+      <div><label className="flex items-start gap-3 rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700"><input name="contact_consent" type="checkbox" checked={values.contact_consent === "yes"} onChange={update} className="mt-1 h-4 w-4 accent-brand-700" /><span>{t.consent} *</span></label>{errors.contact_consent && <p className="mt-2 text-sm text-rose-700" role="alert">{errors.contact_consent}</p>}</div>
+      <div className="flex flex-col gap-4 sm:flex-row"><button type="submit" className="rounded-full bg-brand-700 px-7 py-4 font-semibold text-white shadow-panel transition hover:bg-brand-800">{t.submit}</button><button type="reset" className="rounded-full border border-slate-300 bg-white px-7 py-4 font-semibold text-slate-700 transition hover:border-brand-700 hover:text-brand-700">{t.clear}</button></div>
+      <p className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">{t.intro}</p>
+    </form>
+  </section>;
+}
+
+export function ApplicationPage({ locale }: { locale: Locale }) {
+  const t = messages[locale];
+  return <main className="mx-auto grid max-w-7xl gap-10 px-6 pb-20 pt-6 lg:grid-cols-[0.8fr_1.2fr] lg:px-8"><aside className="space-y-6"><p className="inline-flex rounded-full border border-brand-200 bg-white/80 px-4 py-2 text-sm font-medium text-brand-800 shadow-sm">{locale === "es" ? "Captura estructurada para agilizar el seguimiento" : "Structured patient intake for follow-up"}</p><h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">{locale === "es" ? "Solicita el seguimiento de una cita" : "Request an appointment follow-up"}</h1><p className="text-lg leading-8 text-slate-700">{t.intro}</p><div className="rounded-[2rem] bg-slate-950 p-8 text-white shadow-panel"><h2 className="text-xl font-semibold">{t.before}</h2><ul className="mt-5 list-disc space-y-3 pl-5 text-sm leading-7 text-slate-200">{t.beforeItems.map((item) => <li key={item}>{item}</li>)}</ul></div><p className="rounded-3xl border border-amber-300 bg-amber-50 px-5 py-4 text-sm font-medium text-amber-900">{t.partnership}</p></aside><ApplicationForm locale={locale} /></main>;
+}
