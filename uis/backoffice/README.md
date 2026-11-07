@@ -115,7 +115,7 @@ cp .env.example .env.local
 ```bash
 # Terminal 1 — backend
 cd services/api
-uv run uvicorn main:app --reload --port 8000
+uv run uvicorn app.main:app --reload --port 8000
 
 # Terminal 2 — frontend
 cd uis/backoffice

@@ -92,7 +92,7 @@ Your script must report how many records fall into each rule type — **without 
 
 ## Data Distribution (test file provided)
 
-The `incidents-healthcore.csv` file has been sent as an attachment (ver ficheros `incidents-healthcore.csv`). The following values describe its contents and are what your script must produce exactly.
+The source file is stored at `data/incidents-healthcore.csv`. The following values describe its contents and are what your script must produce exactly.
 
 **Total rows:** 100
 
@@ -142,7 +142,7 @@ Average: **3.58**
 
 ## Expected Output
 
-When the student runs `python analyze.py incidents-healthcore.csv` against the provided file, the console output must show the values below for all **required** sections (totals, invalid breakdown, category, status, and satisfaction). The `BREAKDOWN BY COUNTRY` block is **recommended** for HealthCore — useful context for stakeholders, but not required for a passing submission.
+When the student runs `python scripts/analyze.py` against the provided file, the console output must show the values below for all **required** sections (totals, invalid breakdown, category, status, and satisfaction). The `BREAKDOWN BY COUNTRY` block is **recommended** for HealthCore — useful context for stakeholders, but not required for a passing submission.
 
 ```
 ============================================================

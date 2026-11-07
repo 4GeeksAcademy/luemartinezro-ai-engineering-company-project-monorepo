@@ -119,6 +119,8 @@ Cliente                    API (FastAPI)
 services/api/
 ├── .env                          # Variables de entorno local
 ├── .env.example                  # Plantilla de variables de entorno
+├── main.py                       # Compatibilidad: reexporta app.main:app
+├── seed.py                       # Carga inicial de proveedores
 ├── pyproject.toml                # Proyecto Python (uv)
 ├── uv.lock                       # Lock de dependencias
 ├── requirements.txt              # Dependencias legacy
@@ -128,6 +130,7 @@ services/api/
 └── app/
     ├── __init__.py
     ├── main.py                   # Composición: CORS, routers, health check
+    ├── database.py               # Persistencia y consultas de proveedores
     ├── data.py                   # Datos en memoria (clínicas, departamentos)
     │
     ├── core/                     # ▲ Capa transversal
@@ -165,7 +168,8 @@ services/api/
     └── routers/                  # Routers legacy (ahora protegidos)
         ├── __init__.py
         ├── clinics.py            # Endpoints protegidos con Depends(get_current_user)
-        └── departments.py        # Endpoints protegidos con Depends(get_current_user)
+      ├── departments.py        # Endpoints protegidos con Depends(get_current_user)
+      └── suppliers.py          # CRUD de proveedores
 ```
 
 ---

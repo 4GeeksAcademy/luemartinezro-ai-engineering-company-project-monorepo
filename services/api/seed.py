@@ -17,8 +17,13 @@ import os
 # Ensure the project root is on the path so we can import app modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from database import suppliers_table, is_empty, SupplierQuery
-from models import SupplierDocument, SupplierCreate, SupplierCategory, SupplierStatus
+from app.database import suppliers_table, is_empty, SupplierQuery
+from app.models.suppliers import (
+    SupplierDocument,
+    SupplierCreate,
+    SupplierCategory,
+    SupplierStatus,
+)
 
 
 # ── Initial suppliers (aligned with HealthCore's healthcare procurement) ──
