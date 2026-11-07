@@ -81,6 +81,12 @@
 - **Decisión:** Usar `.agents/rules/` para reglas de desarrollo (alcance siempre activo, por patrón o por invocación) y `.agents/skills/` para habilidades reutilizables con criterios de aceptación.
 - **Consecuencia:** Separación clara entre configuración del agente (`.agents/`) y código de producto (`agents/`, `skills/`).
 
+### ADR-007: URL de la API resuelta dinámicamente en el backoffice
+
+- **Contexto:** El frontend `uis/backoffice/` tenía la URL del backend hardcodeada como `http://localhost:8000`, lo que rompía las llamadas a la API en GitHub Codespaces (el origen real es `https://<workspace>-8000.app.github.dev`).
+- **Decisión:** Implementar `uis/backoffice/lib/api.ts` con un helper `getApiBase()` que resuelve la base de la API en este orden: (1) `NEXT_PUBLIC_API_URL` si está definida, (2) derivación automática del host reenviado de Codespaces desde el origen del frontend, (3) fallback local `http://localhost:8000`.
+- **Consecuencia:** Las llamadas a `POST /api/incidents/analyze` y `GET /api/incidents/results/export` funcionan en local, Codespaces y despliegues sin recompilar ni hardcodear hosts. El override por variable de entorno permite fijar la URL por entorno (`docs/ARCHITECTURE_PROPOSAL.md` §9).
+
 ---
 
 ## 3. Restricciones técnicas

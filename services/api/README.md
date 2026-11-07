@@ -7,21 +7,19 @@
 
 ## Propósito
 
-Proporcionar una API unificada que exponga datos de pacientes, citas, facturación, clínicas y personal de HealthCore, consumiendo desde los sistemas EHR existentes y sirviendo a los frontends (web pública, backoffice, talent pipeline tracker).
+Proporcionar una API unificada que exponga datos de pacientes, citas, facturación, clínicas, personal y **proveedores (suppliers)** de HealthCore, consumiendo desde los sistemas EHR existentes y sirviendo a los frontends (web pública, backoffice, talent pipeline tracker).
 
 ---
 
 ## Stack
 
-| Componente | Tecnología |
-|-----------|------------|
-| Framework | **FastAPI** (Python 3.14+) |
-| Autenticación | JWT stateless (`python-jose` + `bcrypt`) |
-| Base de datos | TinyDB (usuarios y perfiles) |
-| Datos de negocio | En memoria (clínicas, departamentos) |
-| Configuración | `pydantic-settings` + `.env` |
-| Documentación | Swagger UI (OpenAPI) en `/docs` |
-| Ejecución | `uvicorn app.main:app --reload` |
+| Componente         | Tecnología                                       |
+|--------------------|--------------------------------------------------|
+| Framework          | **FastAPI** (Python 3.11+)                       |
+| Base de datos      | **TinyDB** (JSON embebido, migración a Postgres planificada) |
+| Validación         | **Pydantic v2** con Enums, field validators y modelos separados input/response |
+| Documentación      | Swagger UI (OpenAPI) en `/docs`                  |
+| Ejecución          | `uvicorn main:app --reload` o `uvicorn app.main:app --reload` |
 
 ---
 
@@ -267,54 +265,18 @@ services/api/
 
 ## Cómo ejecutar
 
-### 1. Configurar variables de entorno
+### Versión flat (main.py)
 
 ```bash
 cd services/api
-cp .env.example .env
-# Editar .env con los valores deseados (JWT_SECRET_KEY, etc.)
+uv run uvicorn main:app --reload --port 8000
 ```
 
-### 2. Instalar dependencias
-
-**Con uv (recomendado):**
-```bash
-uv sync
-```
-
-**Con pip:**
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Inicializar la base de datos TinyDB
-
-> **La base de datos se crea automáticamente al arrancar la API** — no es necesario ejecutar este paso manualmente.  
-> El directorio `data/` y el archivo `data/tinydb.json` se crean en el primer uso gracias a `init_db()`.
-
-Si deseas crearla explícitamente antes de arrancar:
-
-**Con uv:**
-```bash
-uv run init-db
-```
-
-**Con pip:**
-```bash
-python3 -c "from app.db.tinydb import init_db; init_db()"
-```
-
-Esto crea el directorio `data/` y el archivo `tinydb.json` si no existen (operación idempotente).
-
-### 4. Iniciar el servidor
+### Versión empaquetada (app/)
 
 ```bash
+cd services/api
 uv run uvicorn app.main:app --reload --port 8000
-```
-
-O con pip:
-```bash
-uvicorn app.main:app --reload --port 8000
 ```
 
 La documentación interactiva estará disponible en:
@@ -389,10 +351,26 @@ curl http://localhost:8000/departments/compliance/kpis \
 
 ## Datos de negocio
 
-Todos los datos servidos por la API provienen de `CONTEXT.md` en la raíz del monorepo:
-- 12 clínicas (9 US, 3 UK) con direcciones, teléfonos y horarios reales
-- 7 departamentos con responsables, KPIs y problemas documentados
-- Métricas operativas (no-show rate, denial rate, tiempo de contratación, etc.)
+Los datos provienen de dos fuentes:
+- **`CONTEXT.md`** en la raíz del monorepo: clínicas, departamentos, métricas operativas.
+- **`Company-BRIEFING.md`** en la raíz del monorepo: proveedores iniciales, categorías, estados permitidos.
+
+### Proveedores iniciales (12)
+
+| Proveedor                   | País  | Categorías                        | Tarifa  | Estado     |
+|-----------------------------|-------|-----------------------------------|---------|------------|
+| MedSupply Texas LLC         | US    | Medical Supplies                  | $250.00 | active     |
+| PharmaCare Solutions        | US    | Pharmaceuticals                   | $480.00 | active     |
+| HealthTech Equipment        | US    | Medical Equipment                 | $1,200.00 | active   |
+| CloudMed IT Services        | UK    | IT Services                       | $350.00 | active     |
+| OfficePro Admin Supplies    | US    | Administrative                    | $85.00  | active     |
+| UK Pharma Distributors      | UK    | Pharmaceuticals                   | $420.00 | active     |
+| GlobalScan Imaging          | US    | Medical Equipment, IT Services    | $950.00 | suspended  |
+| London Medical Supplies     | UK    | Medical Supplies                  | $195.00 | active     |
+| Atlantic Healthcare IT      | US    | IT Services                       | $600.00 | active     |
+| CleanCare Administrative    | UK    | Administrative                    | $65.00  | suspended  |
+| Florida Pharma Group        | US    | Pharmaceuticals                   | $510.00 | active     |
+| Manchester MedEquipment     | UK    | Medical Equipment                 | $875.00 | active     |
 
 Los datos de **usuarios y perfiles** se almacenan exclusivamente en **TinyDB** (tablas `users` y `profiles` dentro de `data/tinydb.json`).
 

@@ -14,7 +14,7 @@ from app.modules.auth.router import router as auth_router
 from app.modules.profiles.router import router as profiles_router
 from app.modules.users.router import router as users_router
 from app.models.schemas import HealthResponse
-from app.routers import clinics, departments
+from app.routers import clinics, departments, incidents, suppliers
 
 # ── Ensure the TinyDB data directory exists before any request ──
 init_db()
@@ -52,3 +52,5 @@ app.include_router(departments.router)
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(profiles_router)
+app.include_router(incidents.router)
+app.include_router(suppliers.router)

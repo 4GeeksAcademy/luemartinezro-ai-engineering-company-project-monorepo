@@ -147,19 +147,19 @@ export default function HomePage() {
         <h2 className="text-sm font-semibold text-gray-700">Quick access</h2>
         <div className="mt-3 flex flex-wrap gap-3">
           <a
-            href="../../website/index.html"
+            href="/website-index.html"
             className="rounded-full bg-[#0031c4] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#0016a2]"
           >
             Public website
           </a>
           <a
-            href="../../website/application.html"
+            href="/website-application.html"
             className="rounded-full border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#0031c4] hover:text-[#0031c4]"
           >
             Patient enquiry form
           </a>
           <a
-            href="../../website/index.html#locations"
+            href="/website-index.html#locations"
             className="rounded-full border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#0031c4] hover:text-[#0031c4]"
           >
             Clinic locations

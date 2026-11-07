@@ -5,7 +5,15 @@ This folder contains **all projects with a user interface** for the cross-functi
 The two main projects stored here are:
 
 - **`website`** — the company's public-facing web presence.
-- **`backoffice`** — the internal admin application. This is the ideal place to develop multiple solutions within a single project: authentication, people management, operations management, internal communication, and other back-office capabilities.
+- **`backoffice`** — the internal admin application. This is the ideal place to develop multiple solutions within a single project: authentication, people management, operations management, internal communication, **supplier directory**, and other back-office capabilities.
+
+### Current dashboards and tools
+
+| Area | Route | Description |
+|------|-------|-------------|
+| **Main Dashboard** | `/` | Department KPIs (Clinical Ops, Patient Access, Revenue Cycle, Compliance, People, Technology) |
+| **Incident Analyzer** | `/incidents` | Upload/analyze patient incident CSVs, view metrics and invalid records |
+| **Supplier Directory** | `/suppliers` | Full CRUD management: table, filters, registration form, inline rate edit, status toggle, delete |
 
 Organize `uis/` by **different concerns** — each subfolder covers a distinct area of the company (for example, public web vs internal operations) and includes its own technical and functional documentation.
 
