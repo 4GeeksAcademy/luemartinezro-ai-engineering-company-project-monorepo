@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { filterAppointmentsByStatus, filterClaims, groupClaimsBy, sortClaimsById } from "../../../../src/utils/collections";
-import { binarySearchClaimById, findClaimById, findClinicianById } from "../../../../src/utils/search";
-import { calculateDenialRate, calculateNoShowCost, flagHighDenialPayers, flagHighNoShowLocations, generateCMEReport, getCliniciansAtRisk, getCliniciansWithExpiringLicences, noShowRateByLocation } from "../../../../src/utils/transformations";
-import { isDenialRateAboveThreshold, isNoShowRateAboveThreshold, validateClaim, validateClinician } from "../../../../src/utils/validations";
-import { sampleAppointments, sampleClaims, sampleClinicians, sampleLocations } from "../../../../src/types/models";
+import { filterAppointmentsByStatus, filterClaims, groupClaimsBy, sortClaimsById } from "@/src/utils/collections";
+import { binarySearchClaimById, findClaimById, findClinicianById } from "@/src/utils/search";
+import { calculateDenialRate, calculateNoShowCost, flagHighDenialPayers, flagHighNoShowLocations, generateCMEReport, getCliniciansAtRisk, getCliniciansWithExpiringLicences, noShowRateByLocation } from "@/src/utils/transformations";
+import { isDenialRateAboveThreshold, isNoShowRateAboveThreshold, validateClaim, validateClinician } from "@/src/utils/validations";
+import { sampleAppointments, sampleClaims, sampleClinicians, sampleLocations } from "@/src/types/models";
 import { PageFrame, type Locale } from "./site-shell";
 
 const text = {

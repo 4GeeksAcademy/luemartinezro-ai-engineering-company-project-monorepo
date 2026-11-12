@@ -1,0 +1,72 @@
+# HealthCore Monorepo — Local Frontend Orchestration
+#
+# Starts all three Next.js frontends with hot-reload in dev mode.
+# Production builds use the multi-stage Dockerfiles in each uis/*/ folder.
+#
+# Usage:
+#   docker compose up -d          # Start all frontends
+#   docker compose up -d website  # Start only the website
+#   docker compose logs -f        # Follow logs
+#   docker compose down           # Stop everything
+
+services:
+  website:
+    build:
+      context: ./uis/website
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_TALENT_TRACKER_URL=http://localhost:3003
+    container_name: healthcore-website
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - NEXT_PUBLIC_TALENT_TRACKER_URL=http://localhost:3003
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:3002/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  backoffice:
+    build:
+      context: ./uis/backoffice
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8000
+    container_name: healthcore-backoffice
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  talent-tracker:
+    build:
+      context: ./uis/talent-pipeline-tracker
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8000
+    container_name: healthcore-talent-tracker
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:3003/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
