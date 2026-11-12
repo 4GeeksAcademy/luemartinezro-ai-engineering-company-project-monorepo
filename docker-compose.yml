@@ -1,15 +1,36 @@
-# HealthCore Monorepo — Local Frontend Orchestration
+# HealthCore Monorepo — Full Stack Orchestration
 #
-# Starts all three Next.js frontends with hot-reload in dev mode.
-# Production builds use the multi-stage Dockerfiles in each uis/*/ folder.
+# Starts all three Next.js frontends plus the FastAPI backend.
 #
 # Usage:
-#   docker compose up -d          # Start all frontends
+#   docker compose up -d          # Start everything
 #   docker compose up -d website  # Start only the website
 #   docker compose logs -f        # Follow logs
 #   docker compose down           # Stop everything
 
 services:
+  # ── Backend API ──────────────────────────────────────────
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    container_name: healthcore-api
+    ports:
+      - "8000:8000"
+    environment:
+      - JWT_SECRET_KEY=change-me-in-production
+      - TINYDB_PATH=/app/data/tinydb.json
+    volumes:
+      - api-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ── Frontend: Public Website ─────────────────────────────
   website:
     build:
       context: ./uis/website
@@ -22,7 +43,6 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3002
-      - NEXT_PUBLIC_TALENT_TRACKER_URL=http://localhost:3003
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--spider", "http://localhost:3002/"]
@@ -31,6 +51,7 @@ services:
       retries: 3
       start_period: 10s
 
+  # ── Frontend: Backoffice ─────────────────────────────────
   backoffice:
     build:
       context: ./uis/backoffice
@@ -51,12 +72,13 @@ services:
       retries: 3
       start_period: 10s
 
+  # ── Frontend: Talent Pipeline Tracker ────────────────────
+  # Uses the external 4Geeks API (playground.4geeks.com) as fallback.
+  # Do NOT set NEXT_PUBLIC_API_URL — the code defaults to the external API.
   talent-tracker:
     build:
       context: ./uis/talent-pipeline-tracker
       dockerfile: Dockerfile
-      args:
-        - NEXT_PUBLIC_API_URL=http://localhost:8000
     container_name: healthcore-talent-tracker
     ports:
       - "3003:3003"
@@ -70,3 +92,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+volumes:
+  api-data:
