@@ -23,7 +23,7 @@ interface FieldErrors {
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register, loading } = useAuth();
+  const { register, loading, error } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +32,6 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [serverError, setServerError] = useState<string | null>(null);
 
   const validate = useCallback((): boolean => {
     const errors: FieldErrors = {};
@@ -48,7 +47,6 @@ export default function RegisterPage() {
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      setServerError(null);
       if (!validate()) return;
 
       const success = await register({
@@ -61,8 +59,6 @@ export default function RegisterPage() {
 
       if (success) {
         router.push("/");
-      } else {
-        setServerError("Registration failed. Please check your information and try again.");
       }
     },
     [email, password, name, phone, address, register, router, validate],
@@ -84,9 +80,9 @@ export default function RegisterPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {serverError && (
+          {error && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {serverError}
+              {error}
             </div>
           )}
 
