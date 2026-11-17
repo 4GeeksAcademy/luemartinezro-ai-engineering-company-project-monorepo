@@ -1,6 +1,11 @@
 "use client";
 
+import { useAuth } from "@/hooks/useAuth";
+
 export default function HomePage() {
+  const { user } = useAuth();
+  const displayName = user?.profile?.name || user?.email || "HealthCore team";
+
   return (
     <div className="space-y-8">
       {/* ── Welcome banner ── */}
@@ -9,7 +14,7 @@ export default function HomePage() {
           HealthCore Digital &mdash; Internal backoffice
         </p>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#0016a2]">
-          Welcome back, HealthCore team
+          Welcome back, {displayName}
         </h1>
         <p className="mt-2 text-sm text-gray-600">
           This is your central dashboard for monitoring clinic operations, patient access,

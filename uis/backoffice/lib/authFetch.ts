@@ -1,0 +1,82 @@
+/**
+ * Authenticated fetch wrapper — HealthCore Backoffice.
+ *
+ * Automatically attaches the Bearer token on every request.
+ * Detects 401 responses and triggers an automatic redirect to /login.
+ */
+
+import { getApiBase } from "./api";
+import { getToken, handleAuthError } from "./auth";
+
+interface AuthFetchOptions extends RequestInit {
+  /** Skip token injection — use for login/register endpoints. */
+  noAuth?: boolean;
+}
+
+/**
+ * Perform an authenticated fetch request against the HealthCore API.
+ *
+ * - Prepends `getApiBase()` to relative URLs
+ * - Injects `Authorization: Bearer <token>` unless `noAuth: true`
+ * - On 401, clears token and redirects to /login
+ *
+ * @example
+ *   const data = await authFetch("/auth/me");
+ *   const user = await authFetch("/profiles/me", { method: "PUT", body: JSON.stringify(payload) });
+ */
+export async function authFetch<T = unknown>(
+  url: string,
+  options: AuthFetchOptions = {},
+): Promise<T> {
+  const { noAuth, ...fetchOptions } = options;
+  const base = getApiBase();
+  const fullUrl = url.startsWith("http") ? url : `${base}${url}`;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(fetchOptions.headers as Record<string, string>),
+  };
+
+  if (!noAuth) {
+    const token = getToken();
+    if (!token) {
+      handleAuthError();
+      throw new Error("No authentication token available");
+    }
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(fullUrl, {
+    ...fetchOptions,
+    headers,
+  });
+
+  // Handle 401 — token expired or invalid
+  if (res.status === 401) {
+    handleAuthError();
+    throw new Error("Authentication failed — redirecting to login");
+  }
+
+  // No content
+  if (res.status === 204) {
+    return undefined as T;
+  }
+
+  // Error response — try to parse detail message
+  if (!res.ok) {
+    let detail = `Request failed: ${res.status} ${res.statusText}`;
+    try {
+      const body = await res.json();
+      if (body.detail) {
+        detail = body.detail;
+      } else if (body.message) {
+        detail = body.message;
+      }
+    } catch {
+      // ignore parse errors
+    }
+    throw new Error(detail);
+  }
+
+  return res.json() as Promise<T>;
+}
