@@ -38,6 +38,16 @@ def not_found(detail: str = "Resource not found") -> HTTPException:
     )
 
 
+# ── 400 Bad Request ──
+
+def bad_request(detail: str = "Bad request") -> HTTPException:
+    """Return a standard 400 response."""
+    return HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail=detail,
+    )
+
+
 # ── 409 Conflict ──
 
 def conflict(detail: str = "Resource already exists") -> HTTPException:

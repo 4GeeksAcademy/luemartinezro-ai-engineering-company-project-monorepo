@@ -49,6 +49,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 Suppliers
               </Link>
               <span className="text-gray-300">|</span>
+              <Link href="/account/change-password" className="font-medium text-[#0031c4]">
+                Account
+              </Link>
+              <span className="text-gray-300">|</span>
               <a
                 href="http://localhost:3002"
                 className="text-gray-500 transition hover:text-[#0069ff]"

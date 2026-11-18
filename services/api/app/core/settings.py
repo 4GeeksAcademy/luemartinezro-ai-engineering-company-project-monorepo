@@ -38,5 +38,11 @@ class Settings(BaseSettings):
     # ── CORS (comma-separated list of origins) ──
     CORS_ORIGINS: str = "*"
 
+    # ── Password Reset ──
+    RESET_TOKEN_EXPIRE_MINUTES: int = 30
+
+    # ── Resend (email) ──
+    RESEND_API_KEY: str = ""
+
 
 settings = Settings()
