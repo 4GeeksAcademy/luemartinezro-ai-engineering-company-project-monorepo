@@ -46,10 +46,17 @@ export async function authFetch<T = unknown>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(fullUrl, {
-    ...fetchOptions,
-    headers,
-  });
+  let res: Response;
+  try {
+    res = await fetch(fullUrl, {
+      ...fetchOptions,
+      headers,
+    });
+  } catch {
+    throw new Error(
+      "Unable to connect to the HealthCore API. Check that the API server is running and try again.",
+    );
+  }
 
   // Handle 401 — token expired or invalid
   if (res.status === 401) {

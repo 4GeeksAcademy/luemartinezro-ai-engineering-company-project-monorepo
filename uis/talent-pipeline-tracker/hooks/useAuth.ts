@@ -69,7 +69,14 @@ async function healthCoreFetch<T = unknown>(
     ...(options.headers as Record<string, string>),
   };
 
-  const res = await fetch(fullUrl, { ...options, headers });
+  let res: Response;
+  try {
+    res = await fetch(fullUrl, { ...options, headers });
+  } catch {
+    throw new Error(
+      "Unable to connect to the HealthCore API. Check that the API server is running and try again.",
+    );
+  }
 
   if (!res.ok) {
     let detail = `Request failed: ${res.status} ${res.statusText}`;

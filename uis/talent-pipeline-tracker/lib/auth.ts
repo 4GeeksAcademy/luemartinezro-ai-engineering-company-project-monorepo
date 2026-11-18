@@ -33,26 +33,11 @@ export function getAuthHeaders(): Record<string, string> {
 }
 
 /**
- * Resolve the HealthCore API base URL.
- *
- * Order:
- * 1. NEXT_PUBLIC_API_URL env var
- * 2. Codespaces derivation
- * 3. Local fallback: http://localhost:8000
+ * Route API calls through this app's same-origin Next.js rewrite. This avoids
+ * requiring the browser to access the separately forwarded API port.
  */
 export function getHealthCoreApiBase(): string {
-  if (process.env.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL;
-  }
-
-  if (typeof window !== "undefined") {
-    const { hostname, protocol } = window.location;
-    if (hostname.endsWith("app.github.dev")) {
-      return `${protocol}//${hostname.replace(/-3003(?=\.)/, "-8000")}`;
-    }
-  }
-
-  return "http://localhost:8000";
+  return "/api/healthcore";
 }
 
 /**
