@@ -142,10 +142,18 @@ services/api/
     │   └── tinydb.py             # Singleton TinyDB + get_table()
     │
     ├── modules/                  # ▲ Módulos de negocio (Router → Service → Repository)
-    │   ├── auth/                 # Autenticación JWT
-    │   │   ├── schemas.py        # LoginRequest, TokenResponse, AuthMeResponse
-    │   │   ├── service.py        # Lógica de login
-    │   │   └── router.py         # POST /auth/login, GET /auth/me
+    │   ├── auth/                 # Autenticación JWT + password reset
+    │   │   ├── schemas.py        # LoginRequest, TokenResponse, AuthMeResponse,
+    │   │   │                     # ForgotPasswordRequest/Response,
+    │   │   │                     # ResetPasswordRequest/Response,
+    │   │   │                     # ChangePasswordRequest/Response
+    │   │   ├── service.py        # Lógica de login + forgot/reset/change password
+    │   │   ├── router.py         # POST /auth/login, GET /auth/me,
+    │   │   │                     # POST /auth/forgot-password,
+    │   │   │                     # POST /auth/reset-password,
+    │   │   │                     # POST /auth/change-password
+    │   │   ├── email.py          # Envío de emails transaccionales (Resend)
+    │   │   └── repository.py     # ResetTokenRepository (TinyDB: reset_tokens)
     │   │
     │   ├── users/                # Gestión de credenciales
     │   │   ├── schemas.py        # UserCreate, UserUpdate, UserResponse, UserRole
@@ -186,6 +194,9 @@ services/api/
 |--------|------|------|-------------|
 | `POST` | `/auth/login` | ❌ | Validar credenciales y obtener JWT |
 | `GET` | `/auth/me` | ✅ | Email, rol y perfil del usuario autenticado |
+| `POST` | `/auth/forgot-password` | ❌ | Solicitar reset de contraseña (siempre retorna 200 para prevenir enumeración de usuarios) |
+| `POST` | `/auth/reset-password` | ❌ | Cambiar contraseña con un token válido de un solo uso |
+| `POST` | `/auth/change-password` | ✅ | Cambiar contraseña estando autenticado (requiere contraseña actual) |
 
 ### Usuarios
 
@@ -245,6 +256,16 @@ services/api/
 | `phone` | `str` | Teléfono de contacto |
 | `address` | `str` | Dirección postal |
 
+### Reset Token (TinyDB — tabla `reset_tokens`)
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `id` | `int` | Doc ID asignado por TinyDB |
+| `user_id` | `int` | FK al ID del usuario en TinyDB |
+| `token_hash` | `str` | Hash SHA-256 del token (no se almacena en texto plano) |
+| `expires_at` | `str` | ISO 8601 timestamp de expiración |
+| `used` | `bool` | `false` por defecto; se marca `true` tras el primer uso |
+
 ---
 
 ## Seguridad
@@ -254,7 +275,9 @@ services/api/
 - **Token JWT** firmado con HS256; contiene `sub` (user_id), `iat` y `exp`
 - **Expiración configurable** mediante variable de entorno `ACCESS_TOKEN_EXPIRE_MINUTES`
 - **Protección por rol** — acceso restringido según `admin`, `manager` o `user`
-- **Todas las rutas de negocio protegidas** — solo `/health`, `/auth/login` y `POST /users` son públicas
+- **Todas las rutas de negocio protegidas** — solo `/health`, `/auth/login`, `POST /auth/forgot-password`, `POST /auth/reset-password` y `POST /users` son públicas
+- **Reset tokens de un solo uso** — se almacenan como hash SHA-256 y se invalidan tras el primer uso o expiración
+- **Anti-enumeración** — `POST /auth/forgot-password` siempre retorna 200, tanto si el email existe como si no
 - **401** para solicitudes no autenticadas; **403** para acceso no autorizado; **409** para conflictos (email duplicado)
 
 ---
@@ -314,6 +337,118 @@ curl -s -o /dev/null -w "HTTP %{http_code}" http://localhost:8000/clinics
 
 ---
 
+---
+
+## Flujo completo de reset de contraseña
+
+```
+                 ┌──────────────────┐
+                 │   Usuario olvida  │
+                 │   su contraseña   │
+                 └────────┬─────────┘
+                          │
+                          ▼
+  ┌──────────────────────────────────────┐
+  │  POST /auth/forgot-password         │  ← siempre retorna 200
+  │  { "email": "user@healthcore.com" } │
+  └────────────┬─────────────────────────┘
+               │
+               ▼
+  ┌──────────────────────────────────────┐
+  │  1. Se genera un token aleatorio    │
+  │  2. Se almacena como hash SHA-256   │
+  │     en tabla reset_tokens           │
+  │  3. Se envía email con enlace:      │
+  │     /auth/reset-password?token=...  │
+  │     (o se simula en consola si no   │
+  │      hay RESEND_API_KEY configurada)│
+  └────────────┬─────────────────────────┘
+               │
+               ▼
+  ┌──────────────────────────────────────┐
+  │  POST /auth/reset-password          │
+  │  {                                   │
+  │    "token": "<del-email>",          │
+  │    "new_password": "nueva123"       │
+  │  }                                   │
+  └────────────┬─────────────────────────┘
+               │
+               ▼
+  ┌──────────────────────────────────────┐
+  │  1. Se verifica el hash del token   │
+  │  2. Se comprueba que no haya        │
+  │     expirado ni sido usado          │
+  │  3. Se actualiza la contraseña      │
+  │  4. Se marca el token como usado    │
+  └────────────┬─────────────────────────┘
+               │
+               ▼
+  ┌──────────────────────────────────────┐
+  │  Login con nueva contraseña         │
+  │  POST /auth/login                    │
+  │  { "email": "user@healthcore.com",  │
+  │    "password": "nueva123" }         │
+  └──────────────────────────────────────┘
+               │
+               ▼
+  ┌──────────────────────────────────────┐
+  │  (Opcional) Cambiar contraseña      │
+  │  estando autenticado                │
+  │  POST /auth/change-password         │
+  │  Authorization: Bearer <token>      │
+  │  {                                   │
+  │    "current_password": "nueva123",  │
+  │    "new_password": "otra456"        │
+  │  }                                   │
+  └──────────────────────────────────────┘
+```
+
+### Prueba del flujo completo (curl)
+
+```bash
+# 1. Registrar un usuario (si no existe)
+curl -s -X POST "http://localhost:8000/users" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@healthcore.com","password":"secret123","role":"admin","name":"Test User","phone":"+1-512-000-0000","address":"1100 Trinity St, Austin TX"}'
+
+# 2. Solicitar reset de contraseña (siempre retorna 200)
+curl -s -X POST "http://localhost:8000/auth/forgot-password" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@healthcore.com"}'
+
+# 3. Buscar el token simulado en los logs del servidor
+#    (cuando RESEND_API_KEY no está configurada)
+#    Buscar en la salida de uvicorn una línea como:
+#    INFO: Simulated email to test@healthcore.com: http://localhost:3001/auth/reset-password?token=<TOKEN>
+
+# 4. Usar el token para resetear la contraseña
+curl -s -X POST "http://localhost:8000/auth/reset-password" \
+  -H "Content-Type: application/json" \
+  -d '{"token":"<TOKEN-DEL-PASO-3>","new_password":"nueva456"}'
+
+# 5. Login con la nueva contraseña
+curl -s -X POST "http://localhost:8000/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@healthcore.com","password":"nueva456"}'
+
+# 6. (Opcional) Cambiar contraseña estando autenticado
+TOKEN=$(curl -s -X POST "http://localhost:8000/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@healthcore.com","password":"nueva456"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+
+curl -s -X POST "http://localhost:8000/auth/change-password" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"current_password":"nueva456","new_password":"final789"}'
+
+# 7. Verificar que el token usado ya no funciona (debe retornar 400)
+curl -s -o /dev/null -w "HTTP %{http_code}" -X POST "http://localhost:8000/auth/reset-password" \
+  -H "Content-Type: application/json" \
+  -d '{"token":"<TOKEN-DEL-PASO-3>","new_password":"otra123"}'
+# → 400
+```
+
 ## Pruebas rápidas (endpoints legacy - ahora protegidos)
 
 ```bash
@@ -350,6 +485,8 @@ curl http://localhost:8000/departments/compliance/kpis \
 | `JWT_ALGORITHM` | Algoritmo de firma JWT | `HS256` |
 | `TINYDB_PATH` | Ruta al archivo JSON de TinyDB | `./data/tinydb.json` |
 | `CORS_ORIGINS` | Orígenes permitidos (CORS) | `*` |
+| `RESEND_API_KEY` | API Key de Resend para envío de emails transaccionales | `""` (sin clave: los emails se simulan en consola) |
+| `RESET_TOKEN_EXPIRE_MINUTES` | Minutos de validez del token de reset de contraseña | `30` |
 
 ---
 

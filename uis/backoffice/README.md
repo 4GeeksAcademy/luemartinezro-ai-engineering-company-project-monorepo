@@ -23,6 +23,10 @@ Panel de control interno (dashboard) para que los responsables de cada departame
 | `/` | Dashboard principal con KPIs de todos los departamentos |
 | `/incidents` | Análisis de incidentes de pacientes |
 | `/suppliers` | **Directorio de proveedores** — gestión completa (CRUD, filtros, cambios de estado y tarifa) |
+| `/auth/login` | Inicio de sesión con email y contraseña |
+| `/auth/forgot-password` | Solicitar reset de contraseña (formulario de email + confirmación genérica) |
+| `/auth/reset-password` | Cambiar contraseña mediante token (leído de query params) |
+| `/account/change-password` | Cambiar contraseña estando autenticado (requiere contraseña actual) |
 
 ## Dashboard — KPIs mostrados
 
@@ -88,6 +92,10 @@ El frontend del backoffice consume la **HealthCore Central API** (`services/api/
 
 - `POST /api/incidents/analyze` — subir CSV y obtener el resumen
 - `GET /api/incidents/results/export` — descargar el último análisis en CSV
+- `POST /auth/login` — iniciar sesión (email + password → JWT)
+- `POST /auth/forgot-password` — solicitar email de reset de contraseña
+- `POST /auth/reset-password` — cambiar contraseña con token de un solo uso
+- `POST /auth/change-password` — cambiar contraseña estando autenticado
 - `GET /suppliers` — listar proveedores (con filtros opcionales)
 - `POST /suppliers` — crear proveedor
 - `GET /suppliers/{id}` — detalle de proveedor
