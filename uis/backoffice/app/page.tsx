@@ -1,6 +1,17 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { getWebsiteBase } from "@/lib/website";
+
 export default function HomePage() {
+  const [websiteUrl, setWebsiteUrl] = useState("");
+
+  useEffect(() => {
+    setWebsiteUrl(getWebsiteBase());
+  }, []);
+
+  const publicLink = (path: string) => websiteUrl ? `${websiteUrl}${path}` : undefined;
+
   return (
     <div className="space-y-8">
       {/* ── Welcome banner ── */}
@@ -147,19 +158,25 @@ export default function HomePage() {
         <h2 className="text-sm font-semibold text-gray-700">Quick access</h2>
         <div className="mt-3 flex flex-wrap gap-3">
           <a
-            href="http://localhost:3002"
+            href={publicLink("")}
+            aria-disabled={!websiteUrl}
+            onClick={(event) => { if (!websiteUrl) event.preventDefault(); }}
             className="rounded-full bg-[#0031c4] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#0016a2]"
           >
             Public website
           </a>
           <a
-            href="http://localhost:3002/application"
+            href={publicLink("/application")}
+            aria-disabled={!websiteUrl}
+            onClick={(event) => { if (!websiteUrl) event.preventDefault(); }}
             className="rounded-full border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#0031c4] hover:text-[#0031c4]"
           >
             Patient enquiry form
           </a>
           <a
-            href="http://localhost:3002/#locations"
+            href={publicLink("/#locations")}
+            aria-disabled={!websiteUrl}
+            onClick={(event) => { if (!websiteUrl) event.preventDefault(); }}
             className="rounded-full border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#0031c4] hover:text-[#0031c4]"
           >
             Clinic locations

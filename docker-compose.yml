@@ -58,6 +58,7 @@ services:
       dockerfile: Dockerfile
       args:
         - NEXT_PUBLIC_API_URL=http://localhost:8000
+        - NEXT_PUBLIC_WEBSITE_URL=${NEXT_PUBLIC_WEBSITE_URL:-}
     container_name: healthcore-backoffice
     ports:
       - "3000:3000"

@@ -2,6 +2,7 @@
 
 import { type FormEvent, useState } from "react";
 import { getApiBase } from "@/lib/api";
+import { getAuthToken } from "@/lib/auth";
 
 export default function ChangePasswordPage() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -35,7 +36,7 @@ export default function ChangePasswordPage() {
     setLoading(true);
 
     try {
-      const token = sessionStorage.getItem("auth_token");
+      const token = getAuthToken();
       if (!token) {
         setError("You must be logged in to change your password.");
         return;

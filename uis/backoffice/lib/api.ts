@@ -17,14 +17,13 @@ export function getApiBase(): string {
     return process.env.NEXT_PUBLIC_API_URL;
   }
 
-  // 2) GitHub Codespaces: https://<workspace>-3000.app.github.dev
-  //    → https://<workspace>-8000.app.github.dev (forwarded backend port)
+  // 2) GitHub Codespaces: preserve the workspace host and replace whichever
+  //    forwarded frontend port is in use with the API's forwarded port.
   if (typeof window !== "undefined") {
     const { hostname, protocol } = window.location;
 
     if (hostname.endsWith("app.github.dev")) {
-      // Replace the frontend port segment with the backend port (8000)
-      return `${protocol}//${hostname.replace(/-3000(?=\.)/, "-8000")}`;
+      return `${protocol}//${hostname.replace(/-\d+(?=\.app\.github\.dev$)/, "-8000")}`;
     }
   }
 

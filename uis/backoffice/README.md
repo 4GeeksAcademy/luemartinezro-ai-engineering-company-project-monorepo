@@ -24,9 +24,11 @@ Panel de control interno (dashboard) para que los responsables de cada departame
 | `/incidents` | Análisis de incidentes de pacientes |
 | `/suppliers` | **Directorio de proveedores** — gestión completa (CRUD, filtros, cambios de estado y tarifa) |
 | `/auth/login` | Inicio de sesión con email y contraseña |
+| `/auth/register` | Registro público de cuenta estándar (rol `user`) |
 | `/auth/forgot-password` | Solicitar reset de contraseña (formulario de email + confirmación genérica) |
 | `/auth/reset-password` | Cambiar contraseña mediante token (leído de query params) |
 | `/account/change-password` | Cambiar contraseña estando autenticado (requiere contraseña actual) |
+| `/account/profile` | Consultar y actualizar el perfil autenticado |
 
 ## Dashboard — KPIs mostrados
 
@@ -93,6 +95,9 @@ El frontend del backoffice consume la **HealthCore Central API** (`services/api/
 - `POST /api/incidents/analyze` — subir CSV y obtener el resumen
 - `GET /api/incidents/results/export` — descargar el último análisis en CSV
 - `POST /auth/login` — iniciar sesión (email + password → JWT)
+- `POST /users` — crear una cuenta estándar y perfil inicial opcional (el formulario no permite elegir roles)
+- `GET /profiles/me` — cargar y volver a leer el perfil autenticado
+- `PUT /profiles/me` — actualizar los datos del perfil autenticado
 - `POST /auth/forgot-password` — solicitar email de reset de contraseña
 - `POST /auth/reset-password` — cambiar contraseña con token de un solo uso
 - `POST /auth/change-password` — cambiar contraseña estando autenticado
@@ -116,7 +121,12 @@ Para forzar una URL concreta:
 ```bash
 cp .env.example .env.local
 # editar NEXT_PUBLIC_API_URL si es necesario
+# configurar NEXT_PUBLIC_WEBSITE_URL si el sitio público está en otro host
 ```
+
+El enlace al sitio público usa `NEXT_PUBLIC_WEBSITE_URL` si se define; por defecto,
+deriva el puerto 3002 en localhost y Codespaces. Para despliegues con otro dominio,
+configure esta variable al compilar la imagen de Backoffice.
 
 ### Ejecución conjunta (local)
 
@@ -130,7 +140,9 @@ cd uis/backoffice
 npm run dev
 ```
 
-En Codespaces, GitHub reenvía ambos puertos (3000 y 8000) automáticamente; el helper deriva el host reenviado del backend desde el origen del frontend.
+En Codespaces, los helpers reemplazan el puerto del hostname actual por el puerto
+reenviado de destino (8000 para API y 3002 para web pública). Si los frontends tienen
+dominios distintos, configure `NEXT_PUBLIC_WEBSITE_URL` explícitamente.
 
 ## Notas
 

@@ -4,11 +4,13 @@ import { Suspense, type FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getApiBase } from "@/lib/api";
+import { setAuthToken } from "@/lib/auth";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const resetSuccess = searchParams.get("reset") === "success";
+  const registeredSuccess = searchParams.get("registered") === "success";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,7 +36,11 @@ function LoginForm() {
       }
 
       const data = await res.json();
-      sessionStorage.setItem("auth_token", data.access_token);
+      if (!data.access_token) {
+        setError("The login response did not include an access token. Please try again.");
+        return;
+      }
+      setAuthToken(data.access_token);
       router.push("/");
     } catch {
       setError("Network error. Please try again.");
@@ -54,6 +60,11 @@ function LoginForm() {
         {resetSuccess && (
           <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
             Password reset successful. You can now sign in with your new password.
+          </div>
+        )}
+        {registeredSuccess && (
+          <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            Account created successfully. Sign in to continue.
           </div>
         )}
 
@@ -112,6 +123,12 @@ function LoginForm() {
             {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
+        <p className="mt-6 text-center text-sm text-gray-600">
+          Don&apos;t have an account?{" "}
+          <Link href="/auth/register" className="font-medium text-[#0069ff] hover:text-[#0031c4]">
+            Create one
+          </Link>
+        </p>
       </div>
     </div>
   );
