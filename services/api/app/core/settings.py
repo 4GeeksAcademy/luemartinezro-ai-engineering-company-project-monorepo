@@ -44,5 +44,14 @@ class Settings(BaseSettings):
     # ── Resend (email) ──
     RESEND_API_KEY: str = ""
 
+    # ── Frontend URL (for password reset links in emails) ──
+    # Set this to the public/base URL of the frontend application
+    # (e.g. "http://localhost:3001" for local dev,
+    #       "https://<workspace>-3001.app.github.dev" for Codespaces,
+    #       "https://backoffice.healthcore.com" for production).
+    # If not set, the reset link is derived from the incoming request's
+    # base URL by replacing the API port (8000) with the frontend port (3001).
+    FRONTEND_URL: str = ""
+
 
 settings = Settings()

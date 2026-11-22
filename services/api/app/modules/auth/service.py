@@ -54,14 +54,17 @@ class AuthService:
             expiry_minutes=settings.RESET_TOKEN_EXPIRE_MINUTES,
         )
 
-        # Build the reset link
-        base_url = str(request.base_url).rstrip("/")
-        # The backoffice frontend is typically on port 3001, but since we're
-        # on the API side, we use a relative path approach. The frontend
-        # origin is derived from the request's host.
-        # Replace API port (8000) with backoffice port (3001) for local dev,
-        # or use the forwarded origin in Codespaces.
-        reset_link = f"{base_url.replace(':8000', ':3001')}/reset-password?token={plain_token}"
+        # Build the reset link using the FRONTEND_URL setting if available,
+        # otherwise derive it from the request's base URL.
+        if settings.FRONTEND_URL:
+            base = settings.FRONTEND_URL.rstrip("/")
+        else:
+            base_url = str(request.base_url).rstrip("/")
+            # Fallback: replace API port (8000) with backoffice port (3001)
+            # for local development without a FRONTEND_URL env var.
+            base = base_url.replace(":8000", ":3001")
+
+        reset_link = f"{base}/reset-password?token={plain_token}"
 
         # Send the email
         send_password_reset_email(to_email=email, reset_link=reset_link)

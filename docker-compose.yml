@@ -20,6 +20,7 @@ services:
     environment:
       - JWT_SECRET_KEY=change-me-in-production
       - TINYDB_PATH=/app/data/tinydb.json
+      - FRONTEND_URL=http://localhost:3001
     volumes:
       - api-data:/app/data
     restart: unless-stopped
