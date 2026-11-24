@@ -1,621 +1,205 @@
-# BRIEFING — HealthCore
+# BRIEFING — Centralized Incident Manager · HealthCore
 
-**Milestone 2: Programming Fundamentals**  
-**Company:** HealthCore — Outpatient Healthcare Network  
-**Your Role:** Junior AI Engineer, HealthCore Digital Team  
-**Project Owner:** James Osei, CTO
+## Your Company
 
----
+**HealthCore** is an outpatient healthcare services company with **12 clinics** — 9 in the USA (Texas, Florida, and Georgia) and 3 in the UK (London and Manchester). It employs approximately 200 people across clinical staff, operations, administration, and technology. Annual revenue is around $28 million.
 
-## About HealthCore
+As part of the **HealthCore Digital** team, you have been building the internal platform across several milestones. This project integrates a centralized incident manager into that platform. At HealthCore, an incident is not a minor concern: it may affect patient safety, regulatory compliance (HIPAA in the USA, UK GDPR in the UK), or the billing cycle. Structured incident recording is also an audit requirement.
 
-HealthCore is an outpatient healthcare services company operating 12 clinics across the United States (Texas, Florida, Georgia) and the United Kingdom (London, Manchester). You're part of HealthCore Digital, the internal technology unit built to modernise clinical and operational workflows. The company processes around 600 patient visits per week, manages insurance billing across US and UK systems, and employs over 200 clinical and administrative staff.
+> ⚠️ **Regulatory note:** This manager **must not store identifying patient data** (name, date of birth, medical record number, contact details). If an incident involves a patient, they must be referenced only by an opaque internal identifier. Any free-text field must include a visible warning to the user not to enter identifying patient data.
 
 ---
 
-## Your Assignment
+## Who Uses It and Why
 
-James Osei, the CTO, needs you to build the core data processing logic for three of HealthCore's most pressing operational problems: billing denial tracking, no-show cost estimation, and CME (continuing medical education) compliance monitoring.
+**James Osei (CTO)** needs a traceable record of technology failures. No system currently records what failed, when, at which clinic, and how long it took to resolve.
 
-Right now, Tom Callahan's billing team calculates denial rates manually from CSV exports. Marcus Reid's clinical team has no way to estimate how much revenue is lost to no-shows each week. And Diane Foster's people team tracks CME hours in a spreadsheet with no alerts when clinicians fall behind — which creates real regulatory risk.
+**Claire Whitfield (Chief Compliance Officer)** needs to be able to audit incidents related to patient data access or procedural breaches. The system must be queryable by type and date to respond to regulatory audits.
 
-This milestone focuses on building the TypeScript functions that will power an internal operations dashboard. This is pure programming — no AI, no prompting. James needs to see that you can write solid, well-typed code that handles real business logic correctly.
+**Dr. Marcus Reid (Director of Clinical Operations)** wants to know whether any clinic is accumulating clinical or equipment incidents that may affect patient care.
 
-> "The goal of this milestone is not complexity — it's reliability. These numbers go to Tom, Marcus, and Diane every Monday morning. If they're wrong, I hear about it. Write code you can trust."  
-> — James Osei, CTO
-
----
-
-## What You're Building
-
-You will implement a set of TypeScript utilities to:
-
-1. **Model claims, appointments, and clinician data** using interfaces
-2. **Filter and search operational records** by location, status, and date
-3. **Calculate billing denial rates** by payer and location
-4. **Estimate no-show revenue impact** per clinic per week
-5. **Track CME compliance** and flag clinicians at risk
-6. **Validate data** before processing
+**Dr. Sandra Okonkwo (CEO)** wants executive visibility: how many critical incidents are open across the network, broken down by country.
 
 ---
 
-## Business Entities
+## HealthCore Clinics
 
-### Claim
+The `branch` field must contain exactly one of the following values:
 
-A claim represents a billing request submitted to an insurance payer after a patient visit.
+| Database value       | Display name                 |
+| -------------------- | ---------------------------- |
+| `central`            | Central — Austin Main Clinic |
+| `austin_north`       | Austin — North               |
+| `dallas_uptown`      | Dallas Uptown                |
+| `houston_med_center` | Houston Medical Center       |
+| `san_antonio_west`   | San Antonio West             |
+| `miami_brickell`     | Miami Brickell               |
+| `miami_doral`        | Miami Doral                  |
+| `orlando_east`       | Orlando East                 |
+| `tampa_bay`          | Tampa Bay                    |
+| `atlanta_midtown`    | Atlanta Midtown              |
+| `savannah`           | Savannah                     |
+| `london_city`        | London City                  |
+| `london_west`        | London West End              |
+| `manchester_central` | Manchester Central           |
 
-**Interface: `Claim`**
-
-```typescript
-interface Claim {
-  claimId: string; // Format: "CLM-XXXXXX" (e.g., "CLM-000042")
-  patientId: string; // Format: "HC-XXXXXX" (e.g., "HC-A3F291")
-  locationId: string; // Clinic ID (e.g., "us-tx-001")
-  serviceType: ServiceType; // Type of care delivered
-  payerName: string; // Insurance provider name (e.g., "BlueCross")
-  payerId: string; // Alphanumeric payer code
-  submissionDate: string; // ISO 8601 date string
-  claimAmount: number; // Amount billed in USD (must be > 0)
-  status: ClaimStatus; // Current claim status
-  denialReason?: DenialReason; // Only present when status === "denied"
-  resubmitted: boolean; // Whether the claim was resubmitted after denial
-}
-
-type ClaimStatus = "submitted" | "approved" | "denied" | "pending" | "appealed";
-
-type DenialReason =
-  | "missing_authorisation"
-  | "coding_error"
-  | "duplicate_claim"
-  | "patient_not_covered"
-  | "service_not_covered"
-  | "incomplete_documentation";
-
-type ServiceType =
-  | "primary_care"
-  | "chronic_disease"
-  | "preventive"
-  | "specialist"
-  | "womens_health"
-  | "paediatric"
-  | "mental_health";
-```
-
-**Validation Rules:**
-
-- `claimAmount` must be > 0
-- `submissionDate` must not be a future date
-- `locationId` must match one of the known clinic IDs
-- If `status === "denied"`, `denialReason` must be present
-- `patientId` must match the format `HC-` followed by 6 alphanumeric characters
+Use `central` when the incident has no specific clinic — for example, `internal` reports from corporate leadership or `customer` complaints that cannot be tied to a clinic. `central` is HealthCore's headquarters in Austin (Main Clinic); it is also the branch for clinic code `US-TX-01`.
 
 ---
 
-### Appointment
+## Incident Categories
 
-An appointment represents a scheduled patient visit at one of HealthCore's clinics.
+The `category` field must contain exactly one of the following values:
 
-**Interface: `Appointment`**
-
-```typescript
-interface Appointment {
-  appointmentId: string; // Format: "APT-XXXXXX"
-  patientId: string; // Format: "HC-XXXXXX"
-  locationId: string; // Clinic ID
-  serviceType: ServiceType; // Type of care scheduled
-  scheduledDate: string; // ISO 8601 date string
-  scheduledTime: string; // "HH:MM" in 24-hour format
-  status: AppointmentStatus; // Current appointment status
-  noShowReason?: string; // Free text, only present when status === "no_show"
-  confirmedAt?: string; // ISO 8601 datetime, absent if not yet confirmed
-}
-
-type AppointmentStatus =
-  | "scheduled"
-  | "confirmed"
-  | "completed"
-  | "no_show"
-  | "cancelled";
-```
-
-**Validation Rules:**
-
-- `scheduledTime` must be a valid 24-hour time string in the format "HH:MM"
-- `locationId` must match one of the known clinic IDs
-- If `status === "no_show"`, `noShowReason` should be present (warn if missing, do not reject)
+| Value                | Description                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------- |
+| `clinical_equipment` | Clinical equipment failure or issue (no patient data involved)                        |
+| `it_system`          | Technology system failure: EHR, patient portal, billing platform, integrations        |
+| `billing_error`      | Error in the billing or claims coding process                                         |
+| `compliance_breach`  | Potential regulatory non-compliance (HIPAA / UK GDPR) — no identifying patient data   |
+| `patient_experience` | Patient experience issue: appointment, communication, wait time (no identifying data) |
+| `staff_issue`        | Staff incident: absence, conflict, mandatory training overdue                         |
+| `facility_issue`     | Facility problem: water, electricity, HVAC, cleaning                                  |
+| `referral_issue`     | Problem in the inter-clinic referral process                                          |
+| `other`              | Any incident that does not fit the categories above                                   |
 
 ---
 
-### Clinician
+## Status and Lifecycle
 
-A clinician is a licensed clinical staff member who must maintain continuing medical education hours.
+| Value         | Meaning at HealthCore                                             |
+| ------------- | ----------------------------------------------------------------- |
+| `open`        | Incident registered, pending assignment to the responsible person |
+| `in_progress` | Owner identified and handling in progress                         |
+| `resolved`    | Incident closed with corrective action documented                 |
+| `discarded`   | Registered in error, duplicate, or out of scope                   |
 
-**Interface: `Clinician`**
-
-```typescript
-interface Clinician {
-  clinicianId: string; // Format: "CLN-XXXXXX"
-  firstName: string;
-  lastName: string;
-  role: ClinicianRole; // Determines CME requirements
-  locationId: string; // Assigned clinic
-  licenceState: string; // US state code (e.g., "TX") or "UK"
-  licenceExpiryDate: string; // ISO 8601 date string
-  cmeHoursRequired: number; // Annual CME hours required for this role
-  cmeHoursLogged: number; // Hours logged so far in the current cycle
-  cmeYearStartDate: string; // ISO 8601 date — start of current CME cycle
-}
-
-type ClinicianRole =
-  | "physician"
-  | "nurse_practitioner"
-  | "nurse"
-  | "medical_assistant";
-```
-
-**Validation Rules:**
-
-- `cmeHoursRequired` must be >= 0
-- `cmeHoursLogged` must be >= 0
-- `licenceExpiryDate` must be a valid future or present date (past dates are flagged as expired)
-- `role` must be one of the four defined values
+Valid transitions: `open → in_progress`, `open → discarded`, `in_progress → resolved`, `in_progress → discarded`. The `resolved` and `discarded` states are final.
 
 ---
 
-### Location
+## Origins
 
-A location represents one of HealthCore's clinics, including the average fees used for no-show cost calculations.
-
-**Interface: `Location`**
-
-```typescript
-interface Location {
-  locationId: string;
-  name: string;
-  city: string;
-  stateOrCountry: string;
-  country: "US" | "UK";
-  phone: string;
-  averageConsultationFee: Record<ServiceType, number>; // Average fee in USD per service type
-}
-```
+| Value      | When to use it at HealthCore                                        |
+| ---------- | ------------------------------------------------------------------- |
+| `customer` | Reported by a patient or their representative (no identifying data) |
+| `branch`   | Reported by clinical or administrative staff at a specific clinic   |
+| `internal` | Detected by technology, compliance, or corporate leadership         |
 
 ---
 
-## Required Functions
+## Historical Data — Seed from CSV
 
-Implement these functions in the appropriate files according to the structure in the README.
+The CSV file from the **incidents-file-analyzer** project (`incidents-<company>.csv` in `content/contexts/incidents-file-analysis/`) contains incidents exported from HealthCore's legacy patient services system. All of them correspond to incidents reported by patients or their representatives (`origin: "customer"`). The CSV does not contain identifying patient data — it was anonymised before extraction.
 
-### 1. Collection Operations (`src/utils/collections.ts`)
+The analyzer CSV schema uses different field names, status values, and category codes than this manager. **Do not insert CSV rows directly.** Reuse the shared validation logic from the analyzer, then apply the transformations below before insert.
 
-**`filterClaims(claims: Claim[], filters: Partial<Pick<Claim, "locationId" | "status" | "payerName" | "serviceType">>): Claim[]`**
+**Idempotency identifier:** use `incident_id` from the CSV to prevent duplicate records. If that field does not exist, use the combination `title + created_at`.
 
-- Returns claims that match ALL provided filter criteria
-- Ignores filter keys that are not provided
+### Direct field mapping
 
-**`filterAppointmentsByStatus(appointments: Appointment[], status: AppointmentStatus[]): Appointment[]`**
+| CSV field     | Model field   | Transformation                                                                   |
+| ------------- | ------------- | -------------------------------------------------------------------------------- |
+| `incident_id` | —             | Duplicate control only — not stored                                              |
+| `description` | `title`       | First 120 characters of `description`, trimmed. Discard row if empty after trim  |
+| `description` | `description` | Copy verbatim                                                                    |
+| `date`        | `created_at`  | Parse `YYYY-MM-DD` as midnight UTC. Set `updated_at` to the same value on insert |
+| —             | `origin`      | Always `"customer"` for all seed records                                         |
 
-- Returns appointments whose status matches any of the provided statuses
+### Status mapping
 
-**`sortClaimsById(claims: Claim[], direction: "asc" | "desc"): Claim[]`**
+| CSV `status` | Model `status` |
+| ------------ | -------------- |
+| `OPEN`       | `open`         |
+| `CLOSED`     | `resolved`     |
+| `DISCARDED`  | `discarded`    |
 
-- Returns claims sorted alphanumerically by `claimId`
-- Must not mutate the original array
+### Category mapping (HealthCore)
 
-**`sortAppointmentsByDate(appointments: Appointment[], direction: "asc" | "desc"): Appointment[]`**
+| CSV `category`   | Model `category`     |
+| ---------------- | -------------------- |
+| `APPOINTMENT`    | `patient_experience` |
+| `BILLING`        | `billing_error`      |
+| `CLINICAL_CARE`  | `patient_experience` |
+| `ACCESSIBILITY`  | `patient_experience` |
+| `ADMINISTRATIVE` | `other`              |
 
-- Returns appointments sorted by `scheduledDate`
-- Must not mutate the original array
+### Branch mapping (HealthCore)
 
-**`groupClaimsBy(claims: Claim[], key: "locationId" | "payerName" | "status" | "serviceType"): Record<string, Claim[]>`**
+Map CSV `clinic_id` to model `branch`. If `clinic_id` is missing or unmapped, use `central`.
 
-- Groups claims by the specified key
-- Returns an object where each key maps to an array of matching claims
+| CSV `clinic_id` | Model `branch`       |
+| --------------- | -------------------- |
+| `US-TX-01`      | `central`            |
+| `US-TX-02`      | `austin_north`       |
+| `US-TX-03`      | `houston_med_center` |
+| `US-FL-01`      | `miami_brickell`     |
+| `US-FL-02`      | `orlando_east`       |
+| `US-FL-03`      | `tampa_bay`          |
+| `US-GA-01`      | `atlanta_midtown`    |
+| `US-GA-02`      | `atlanta_midtown`    |
+| `US-GA-03`      | `savannah`           |
+| `UK-LON-01`     | `london_city`        |
+| `UK-LON-02`     | `london_west`        |
+| `UK-MAN-01`     | `manchester_central` |
 
----
+**Clinic vs branch rollup:** Model `branch` values are operational reporting units — they are not always 1:1 with clinic marketing names in the Phase 1 CSV. When several CSV `clinic_id` codes share one branch, keep the mapping above and treat the difference as intentional regional rollup:
 
-### 2. Search Operations (`src/utils/search.ts`)
+| CSV `clinic_id` | Clinic name (Phase 1 CSV) | Model `branch`    | Branch display label |
+| --------------- | ------------------------- | ----------------- | -------------------- |
+| `US-GA-01`      | Atlanta, GA — Midtown     | `atlanta_midtown` | Atlanta Midtown      |
+| `US-GA-02`      | Atlanta, GA — Buckhead    | `atlanta_midtown` | Atlanta Midtown      |
+| `UK-LON-02`     | London — Kensington       | `london_west`     | London West End      |
 
-**`findClaimById(claims: Claim[], claimId: string): Claim | null`**
+For example, Buckhead (`US-GA-02`) rolls up to the Midtown-led Atlanta region (`atlanta_midtown`). Kensington (`UK-LON-02`) rolls up to `london_west` even though the branch display label says "London West End".
 
-- Performs linear search to find a claim by its ID
-- Returns the claim if found, null otherwise
-
-**`findClinicianById(clinicians: Clinician[], clinicianId: string): Clinician | null`**
-
-- Performs linear search to find a clinician by their ID
-- Returns the clinician if found, null otherwise
-
-**`binarySearchClaimById(sortedClaims: Claim[], targetId: string): number`**
-
-- Assumes the array is already sorted by `claimId` ascending (use `sortClaimsById` first)
-- Performs binary search to find the index of the claim with the target ID
-- Returns the index if found, -1 otherwise
-
----
-
-### 3. Billing Denial Rate Calculator (`src/utils/transformations.ts`)
-
-**`calculateDenialRate(claims: Claim[]): number`**
-
-- Returns the denial rate as a percentage (0–100), rounded to 2 decimal places
-- Only counts claims with status `"denied"` as denied
-- Throws an error if the claims array is empty
-
-**`denialRateByPayer(claims: Claim[]): Record<string, number>`**
-
-- Groups claims by `payerName` and calculates the denial rate for each payer
-- Returns an object where keys are payer names and values are denial rate percentages (rounded to 2 decimal places)
-- Only includes payers that appear in the claims array
-
-**`denialRateByLocation(claims: Claim[]): Record<string, number>`**
-
-- Groups claims by `locationId` and calculates the denial rate for each location
-- Returns an object where keys are location IDs and values are denial rate percentages (rounded to 2 decimal places)
-
-**`flagHighDenialPayers(claims: Claim[], threshold: number): string[]`**
-
-- Returns the names of payers whose denial rate exceeds the given threshold
-- Use 8 as the default threshold (HealthCore's industry benchmark is 5–8%)
-- Returns an empty array if no payers exceed the threshold
+Records that fail validation or cannot be mapped are discarded and reported to the console.
 
 ---
 
-### 4. No-Show Cost Estimator (`src/utils/transformations.ts`)
+## Expected Values After Seeding
 
-**`calculateNoShowCost(appointments: Appointment[], location: Location, weekEndingDate: string): number`**
+Once the CSV is correctly loaded, `/api/incidents/summary` must return totals by **model** `status` and `category` that match the transformed counts below. These correspond to the **94 valid records** from `incidents-healthcore.csv` in the analyzer project (invalid rows excluded).
 
-- Calculates the total estimated revenue lost to no-shows at a given location during the 7 calendar days ending on `weekEndingDate` (inclusive)
-- Uses `location.averageConsultationFee[serviceType]` to estimate the cost of each missed appointment
-- Returns 0 if there are no no-shows in that period
-- Returns a number in USD, rounded to 2 decimal places
+**By model `status`:**
 
-**`noShowRateByLocation(appointments: Appointment[]): Record<string, number>`**
+| Model `status` | Count |
+| -------------- | ----- |
+| `open`         | 28    |
+| `resolved`     | 52    |
+| `discarded`    | 14    |
 
-- Calculates the no-show rate per location as a percentage
-- Returns an object where keys are location IDs and values are percentages (rounded to 2 decimal places)
+**By model `category`:**
 
-**`flagHighNoShowLocations(appointments: Appointment[], threshold: number): string[]`**
+| Model `category`     | Count |
+| -------------------- | ----- |
+| `patient_experience` | 61    |
+| `billing_error`      | 20    |
+| `other`              | 13    |
 
-- Returns the IDs of locations whose no-show rate exceeds the given threshold
-- Use 20 as the default threshold (HealthCore's internal alert level)
+**By model `branch`:**
 
----
+| Model `branch`       | Count |
+| -------------------- | ----- |
+| `manchester_central` | 15    |
+| `atlanta_midtown`    | 12    |
+| `savannah`           | 10    |
+| `austin_north`       | 9     |
+| `london_west`        | 9     |
+| `london_city`        | 9     |
+| `miami_brickell`     | 8     |
+| `tampa_bay`          | 7     |
+| `central`            | 7     |
+| `houston_med_center` | 4     |
+| `orlando_east`       | 4     |
 
-### 5. CME Compliance Tracker (`src/utils/transformations.ts`)
-
-**`generateCMEReport(clinicians: Clinician[], asOfDate: string): CMEReport[]`**
-
-Generates one report entry per clinician. Return type:
-
-```typescript
-interface CMEReport {
-  clinicianId: string;
-  fullName: string; // "${firstName} ${lastName}"
-  role: ClinicianRole;
-  locationId: string;
-  hoursRequired: number;
-  hoursLogged: number;
-  hoursRemaining: number; // Math.max(0, required - logged)
-  percentComplete: number; // (logged / required) * 100, rounded to 1 decimal
-  daysRemainingInCycle: number; // Calendar days from asOfDate to end of CME cycle
-  complianceStatus: CMEStatus;
-  licenceExpiryDate: string;
-  licenceDaysRemaining: number; // Calendar days from asOfDate to licence expiry
-}
-
-type CMEStatus = "on_track" | "at_risk" | "overdue" | "complete";
-```
-
-**Compliance status logic:**
-
-- `"complete"` — `hoursLogged >= hoursRequired`
-- `"overdue"` — the CME cycle has ended AND `hoursLogged < hoursRequired`
-- `"at_risk"` — the cycle is active AND the clinician's `percentComplete` is more than 15 percentage points behind the share of the year that has elapsed
-- `"on_track"` — the cycle is active and the clinician is not at risk
-
-**`getCliniciansAtRisk(clinicians: Clinician[], asOfDate: string): Clinician[]`**
-
-- Returns all clinicians whose `complianceStatus` is `"at_risk"` or `"overdue"`
-
-**`getCliniciansWithExpiringLicences(clinicians: Clinician[], asOfDate: string, daysThreshold: number): Clinician[]`**
-
-- Returns clinicians whose licence expires within `daysThreshold` calendar days from `asOfDate`
-- Use 90 as the recommended threshold for first alerts, 30 for urgent alerts
+Cross-check these against your analyzer script output: the raw CSV breakdown uses `OPEN`/`CLOSED`/`DISCARDED` and `APPOINTMENT`/`BILLING`/etc. — the seed totals above are the **post-transformation** values your manager must produce.
 
 ---
 
-### 6. Validations (`src/utils/validations.ts`)
+## Implementation Notes
 
-**`validateClaim(claim: Claim, knownLocationIds: string[]): { valid: boolean, errors: string[] }`**
-
-- Validates all business rules for a claim
-- Returns `{ valid: true, errors: [] }` if all rules pass
-- Returns `{ valid: false, errors: ["..."] }` with one message per failed rule
-
-**`validateClinician(clinician: Clinician): { valid: boolean, errors: string[] }`**
-
-- Validates all business rules for a clinician record
-- Returns `{ valid: true, errors: [] }` if all rules pass
-
-**`isDenialRateAboveThreshold(rate: number, threshold?: number): boolean`**
-
-- Returns true if `rate` exceeds `threshold` (default: 8)
-
-**`isNoShowRateAboveThreshold(rate: number, threshold?: number): boolean`**
-
-- Returns true if `rate` exceeds `threshold` (default: 20)
-
----
-
-## Sample Data
-
-Use this data to test your functions. Field names and values must match the interfaces exactly.
-
-### Sample Locations
-
-```typescript
-const sampleLocations: Location[] = [
-  {
-    locationId: "us-tx-001",
-    name: "HealthCore Austin Central",
-    city: "Austin",
-    stateOrCountry: "TX",
-    country: "US",
-    phone: "(512) 340-8800",
-    averageConsultationFee: {
-      primary_care: 180,
-      chronic_disease: 220,
-      preventive: 150,
-      specialist: 320,
-      womens_health: 240,
-      paediatric: 175,
-      mental_health: 200,
-    },
-  },
-  {
-    locationId: "us-fl-001",
-    name: "HealthCore Miami",
-    city: "Miami",
-    stateOrCountry: "FL",
-    country: "US",
-    phone: "(305) 510-7700",
-    averageConsultationFee: {
-      primary_care: 195,
-      chronic_disease: 235,
-      preventive: 160,
-      specialist: 340,
-      womens_health: 255,
-      paediatric: 185,
-      mental_health: 215,
-    },
-  },
-  {
-    locationId: "us-ga-001",
-    name: "HealthCore Atlanta",
-    city: "Atlanta",
-    stateOrCountry: "GA",
-    country: "US",
-    phone: "(404) 330-9900",
-    averageConsultationFee: {
-      primary_care: 170,
-      chronic_disease: 210,
-      preventive: 145,
-      specialist: 310,
-      womens_health: 230,
-      paediatric: 165,
-      mental_health: 190,
-    },
-  },
-];
-```
-
-### Sample Claims
-
-```typescript
-const sampleClaims: Claim[] = [
-  {
-    claimId: "CLM-000001",
-    patientId: "HC-A3F291",
-    locationId: "us-tx-001",
-    serviceType: "primary_care",
-    payerName: "BlueCross",
-    payerId: "BC001",
-    submissionDate: "2025-03-10",
-    claimAmount: 180,
-    status: "approved",
-    resubmitted: false,
-  },
-  {
-    claimId: "CLM-000002",
-    patientId: "HC-B7K442",
-    locationId: "us-fl-001",
-    serviceType: "specialist",
-    payerName: "Aetna",
-    payerId: "AET002",
-    submissionDate: "2025-03-11",
-    claimAmount: 340,
-    status: "denied",
-    denialReason: "missing_authorisation",
-    resubmitted: false,
-  },
-  {
-    claimId: "CLM-000003",
-    patientId: "HC-C2M881",
-    locationId: "us-ga-001",
-    serviceType: "chronic_disease",
-    payerName: "Medicare",
-    payerId: "MED003",
-    submissionDate: "2025-03-12",
-    claimAmount: 210,
-    status: "approved",
-    resubmitted: false,
-  },
-  {
-    claimId: "CLM-000004",
-    patientId: "HC-D9P553",
-    locationId: "us-tx-001",
-    serviceType: "preventive",
-    payerName: "BlueCross",
-    payerId: "BC001",
-    submissionDate: "2025-03-13",
-    claimAmount: 150,
-    status: "denied",
-    denialReason: "coding_error",
-    resubmitted: true,
-  },
-  {
-    claimId: "CLM-000005",
-    patientId: "HC-E4Q117",
-    locationId: "us-fl-001",
-    serviceType: "mental_health",
-    payerName: "Cigna",
-    payerId: "CIG004",
-    submissionDate: "2025-03-14",
-    claimAmount: 215,
-    status: "pending",
-    resubmitted: false,
-  },
-];
-```
-
-### Sample Appointments
-
-```typescript
-const sampleAppointments: Appointment[] = [
-  {
-    appointmentId: "APT-000001",
-    patientId: "HC-A3F291",
-    locationId: "us-tx-001",
-    serviceType: "primary_care",
-    scheduledDate: "2025-03-10",
-    scheduledTime: "09:00",
-    status: "completed",
-    confirmedAt: "2025-03-09T14:00:00Z",
-  },
-  {
-    appointmentId: "APT-000002",
-    patientId: "HC-F6R228",
-    locationId: "us-fl-001",
-    serviceType: "specialist",
-    scheduledDate: "2025-03-11",
-    scheduledTime: "11:30",
-    status: "no_show",
-    noShowReason: "Patient did not call to cancel",
-  },
-  {
-    appointmentId: "APT-000003",
-    patientId: "HC-G1S774",
-    locationId: "us-tx-001",
-    serviceType: "chronic_disease",
-    scheduledDate: "2025-03-12",
-    scheduledTime: "14:00",
-    status: "no_show",
-    noShowReason: "Unreachable before appointment",
-  },
-  {
-    appointmentId: "APT-000004",
-    patientId: "HC-H8T390",
-    locationId: "us-ga-001",
-    serviceType: "preventive",
-    scheduledDate: "2025-03-13",
-    scheduledTime: "10:00",
-    status: "completed",
-    confirmedAt: "2025-03-12T09:30:00Z",
-  },
-  {
-    appointmentId: "APT-000005",
-    patientId: "HC-I5U661",
-    locationId: "us-fl-001",
-    serviceType: "mental_health",
-    scheduledDate: "2025-03-14",
-    scheduledTime: "16:00",
-    status: "no_show",
-    noShowReason: "Transportation issue reported",
-  },
-];
-```
-
-### Sample Clinicians
-
-```typescript
-const sampleClinicians: Clinician[] = [
-  {
-    clinicianId: "CLN-000001",
-    firstName: "Marcus",
-    lastName: "Reid",
-    role: "physician",
-    locationId: "us-tx-001",
-    licenceState: "TX",
-    licenceExpiryDate: "2026-06-30",
-    cmeHoursRequired: 40,
-    cmeHoursLogged: 28,
-    cmeYearStartDate: "2025-01-01",
-  },
-  {
-    clinicianId: "CLN-000002",
-    firstName: "Sandra",
-    lastName: "Flores",
-    role: "nurse_practitioner",
-    locationId: "us-fl-001",
-    licenceState: "FL",
-    licenceExpiryDate: "2025-05-15",
-    cmeHoursRequired: 30,
-    cmeHoursLogged: 6,
-    cmeYearStartDate: "2025-01-01",
-  },
-  {
-    clinicianId: "CLN-000003",
-    firstName: "David",
-    lastName: "Okafor",
-    role: "physician",
-    locationId: "us-ga-001",
-    licenceState: "GA",
-    licenceExpiryDate: "2027-01-01",
-    cmeHoursRequired: 40,
-    cmeHoursLogged: 40,
-    cmeYearStartDate: "2025-01-01",
-  },
-];
-```
-
----
-
-## Business Rules Reference
-
-These thresholds come directly from Tom Callahan (Revenue Cycle) and Diane Foster (People). Encode them exactly — they will be displayed on the Monday morning operations report.
-
-| Rule                                     | Value                                  | Source          |
-| ---------------------------------------- | -------------------------------------- | --------------- |
-| Billing denial rate — industry benchmark | 8%                                     | Tom Callahan    |
-| No-show rate — internal alert threshold  | 20%                                    | Dr. Marcus Reid |
-| CME hours required — Physician           | 40 hours/year                          | Diane Foster    |
-| CME hours required — Nurse Practitioner  | 30 hours/year                          | Diane Foster    |
-| "At risk" CME — trailing threshold       | 15 percentage points behind cycle pace | Diane Foster    |
-| Licence alert — first warning            | 90 days before expiry                  | Diane Foster    |
-| Licence alert — urgent warning           | 30 days before expiry                  | Diane Foster    |
-
----
-
-## Acceptance Criteria
-
-Your implementation will be evaluated on:
-
-1. **Type safety:** All interfaces defined with correct field names and types — no `any`
-2. **Function correctness:** Each function produces the expected output for the given inputs
-3. **Edge case handling:** Functions handle empty arrays, division by zero, and missing optional fields gracefully
-4. **Validation logic:** Business rules from the table above are enforced accurately
-5. **Code organisation:** Functions are in the correct files according to responsibility
-6. **No mutations:** Sorting and filtering functions do not modify the original arrays
-7. **Pure functions:** Functions only work with what they receive as parameters — no global state
-
----
-
-## Questions?
-
-If you're unsure about any requirement, ask your mentor. In a real work environment, you'd message James on Slack or drop a comment on the Jira ticket.
-
----
-
-_This is a real HealthCore Digital project. What you build here will be refactored into the live operations dashboard._
+- **Patient data warning:** the form must display a prominent notice before the `description` field reminding the user not to enter identifying patient data. This warning is not optional — it is a compliance requirement.
+- Incidents of type `compliance_breach` are the highest priority for Claire: although the automatic alert is not part of this project, design the data model so that filter is immediate to implement when needed.
+- HealthCore operates in the USA and the UK. Interface labels must be in English for all clinics. If you implemented multilingual support in previous milestones, English is the mandatory base language for this project.
+- The `description` field is free text and the highest-risk point for accidental patient data entry. The warning must be prominent — not small grey text that users will ignore.
