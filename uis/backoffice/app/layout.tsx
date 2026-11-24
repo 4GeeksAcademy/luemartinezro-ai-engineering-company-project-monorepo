@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import BackofficeNavigation from "@/components/BackofficeNavigation";
@@ -42,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </header>
 
         <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          {children}
+          <ClientLayout>{children}</ClientLayout>
         </main>
 
         <footer className="border-t border-gray-200 bg-white mt-auto">
