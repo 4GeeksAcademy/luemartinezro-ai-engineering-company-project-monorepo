@@ -38,6 +38,7 @@ export default function BackofficeNavigation() {
       <Link href="/" className={linkClass("/")}>Dashboard</Link>
       <span className="text-gray-300" aria-hidden="true">|</span>
       <Link href="/incidents" className={linkClass("/incidents")}>Incidents</Link>
+      <Link href="/incidents/new" className={linkClass("/incidents/new")}>New Incident</Link>
       <span className="text-gray-300" aria-hidden="true">|</span>
       <Link href="/suppliers" className={linkClass("/suppliers")}>Suppliers</Link>
       <span className="text-gray-300" aria-hidden="true">|</span>

@@ -6,7 +6,7 @@
  */
 
 import { getApiBase } from "./api";
-import { getToken, handleAuthError } from "./auth";
+import { getAuthToken, clearAuthToken } from "./auth";
 
 interface AuthFetchOptions extends RequestInit {
   /** Skip token injection — use for login/register endpoints. */
@@ -38,9 +38,9 @@ export async function authFetch<T = unknown>(
   };
 
   if (!noAuth) {
-    const token = getToken();
+    const token = getAuthToken();
     if (!token) {
-      handleAuthError();
+      clearAuthToken();
       throw new Error("No authentication token available");
     }
     headers["Authorization"] = `Bearer ${token}`;
@@ -60,7 +60,7 @@ export async function authFetch<T = unknown>(
 
   // Handle 401 — token expired or invalid
   if (res.status === 401) {
-    handleAuthError();
+    clearAuthToken();
     throw new Error("Authentication failed — redirecting to login");
   }
 
