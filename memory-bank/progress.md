@@ -1,7 +1,7 @@
 # Progress — HealthCore Digital
 
 > Estado actual del desarrollo, decisiones recientes y próximos pasos.
-> Actualizado: 2026-11-07
+> Actualizado: 2026-11-20
 
 ---
 
@@ -258,6 +258,14 @@
 - Se conservan las páginas heredadas de `uis/website/` y `src/`; se eliminó el scaffold `services/api/src/api/` y `pyproject.toml` configura `uv_build` para empaquetar el módulo `app`.
 - Python se administra desde un workspace `uv` raíz con `services/api/` como miembro y un único `uv.lock`; se retiraron el lock anidado, `requirements.txt`, la metadata Node vacía y el paquete Python raíz de plantilla.
 - `uv lock --check`, `uv sync`, el build del wheel de API, `/health`, `/openapi.json` y el análisis del CSV pasaron. Las apps Next.js mantienen sus propios proyectos npm.
+
+## Backoffice: autenticación, perfil y enlaces dinámicos (2026-11-20)
+
+- Añadida ruta `/auth/register` para crear cuentas estándar mediante `POST /users`; no se envía rol desde el cliente. Login y registro se enlazan entre sí y la navegación ofrece acceso a ambos sin sesión.
+- La navegación cliente consulta `sessionStorage` solo después de hidratar, evitando que el estado del token cambie el HTML inicial. Añade enlaces de perfil/cambio de contraseña y cierre de sesión cuando hay token.
+- Añadida `/account/profile`: consulta `GET /profiles/me` al entrar; guarda con `PUT`, actualiza el estado con su respuesta y vuelve a consultar `GET` para confirmar los datos sin recarga.
+- Los enlaces a la web pública usan `NEXT_PUBLIC_WEBSITE_URL` o derivan el puerto 3002 para localhost/Codespaces. La derivación del API de Codespaces ya reemplaza cualquier sufijo de puerto, no solo 3000.
+- Validación: `npm run build` completó incluyendo registro/perfil. `npm run lint` sigue bloqueado por un error circular en la configuración ESLint/`eslint-config-next` existente. El reporte inicial no indicó ruta ni mensaje exacto de hidratación; se eliminó el posible mismatch de auth de navegación, pero la causa histórica debe confirmarse con el mensaje de consola original.
 
 ---
 
