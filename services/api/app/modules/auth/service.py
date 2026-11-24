@@ -64,7 +64,7 @@ class AuthService:
             # for local development without a FRONTEND_URL env var.
             base = base_url.replace(":8000", ":3001")
 
-        reset_link = f"{base}/reset-password?token={plain_token}"
+        reset_link = f"{base}/auth/reset-password?token={plain_token}"
 
         # Send the email
         send_password_reset_email(to_email=email, reset_link=reset_link)
