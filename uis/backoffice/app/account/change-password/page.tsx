@@ -55,8 +55,7 @@ export default function ChangePasswordPage() {
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.detail ?? "Failed to change password.");
+        setError("We couldn’t change your password. Check your current password and try again.");
         return;
       }
 

@@ -63,6 +63,8 @@ export default function SuppliersPage() {
   const [filterCategory, setFilterCategory] = useState("");
   const [formMode, setFormMode] = useState<FormMode>("idle");
   const [formError, setFormError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [actionSuccess, setActionSuccess] = useState("");
   const [rateUpdating, setRateUpdating] = useState<Record<number, boolean>>({});
   const [statusUpdating, setStatusUpdating] = useState<Record<number, boolean>>({});
 
@@ -78,7 +80,7 @@ export default function SuppliersPage() {
 
       const url = `${base}/suppliers${params.toString() ? "?" + params.toString() : ""}`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) throw new Error("Unable to load suppliers");
       const data: Supplier[] = await res.json();
       setSuppliers(data);
       setPageState("ready");
@@ -154,16 +156,15 @@ export default function SuppliersPage() {
       });
 
       if (!res.ok) {
-        const err = await res.json();
-        const detail =
-          err.detail?.[0]?.msg || err.detail || "Validation error.";
-        setFormError(detail);
+        setFormError("We couldn’t register this supplier. Check the details and try again.");
         setFormMode("error");
         return;
       }
 
       // Success — reset form and refresh list
       resetForm();
+      setActionError("");
+      setActionSuccess("Supplier registered successfully.");
       fetchSuppliers();
     } catch {
       setFormError("Network error. Please check the API is running.");
@@ -190,7 +191,8 @@ export default function SuppliersPage() {
     async (supplierId: number) => {
       const newRate = parseFloat(rateInputValue);
       if (isNaN(newRate) || newRate <= 0) {
-        alert("Rate must be a positive number.");
+        setActionSuccess("");
+        setActionError("Enter a positive rate before saving.");
         return;
       }
 
@@ -205,17 +207,22 @@ export default function SuppliersPage() {
         });
 
         if (!res.ok) {
-          const err = await res.json();
-          alert(err.detail?.[0]?.msg || err.detail || "Failed to update rate.");
+          setActionSuccess("");
+          setActionError("We couldn’t update the supplier rate. Please try again.");
+          setEditingRate(supplierId);
         } else {
+          setActionError("");
+          setActionSuccess("Supplier rate updated successfully.");
           fetchSuppliers();
+          setEditingRate(null);
+          setRateInputValue("");
         }
       } catch {
-        alert("Network error. Could not update rate.");
+        setActionSuccess("");
+        setActionError("We couldn’t connect to update the supplier rate. Check your connection and try again.");
+        setEditingRate(supplierId);
       } finally {
         setRateUpdating((prev) => ({ ...prev, [supplierId]: false }));
-        setEditingRate(null);
-        setRateInputValue("");
       }
     },
     [fetchSuppliers, rateInputValue]
@@ -238,13 +245,16 @@ export default function SuppliersPage() {
         });
 
         if (!res.ok) {
-          const err = await res.json();
-          alert(err.detail?.[0]?.msg || err.detail || "Failed to update status.");
+          setActionSuccess("");
+          setActionError("We couldn’t update the supplier status. Please try again.");
         } else {
+          setActionError("");
+          setActionSuccess("Supplier status updated successfully.");
           fetchSuppliers();
         }
       } catch {
-        alert("Network error. Could not update status.");
+        setActionSuccess("");
+        setActionError("We couldn’t connect to update the supplier status. Check your connection and try again.");
       } finally {
         setStatusUpdating((prev) => ({ ...prev, [supplier.id]: false }));
       }
@@ -265,12 +275,16 @@ export default function SuppliersPage() {
         });
 
         if (!res.ok) {
-          alert("Failed to delete supplier.");
+          setActionSuccess("");
+          setActionError("We couldn’t remove this supplier. Please try again.");
         } else {
+          setActionError("");
+          setActionSuccess("Supplier removed successfully.");
           fetchSuppliers();
         }
       } catch {
-        alert("Network error. Could not delete supplier.");
+        setActionSuccess("");
+        setActionError("We couldn’t connect to remove this supplier. Check your connection and try again.");
       }
     },
     [fetchSuppliers]
@@ -295,6 +309,22 @@ export default function SuppliersPage() {
       </section>
 
       {/* ── Filters + Add button ── */}
+      {actionError && (
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError("")} className="rounded-lg bg-red-100 px-3 py-1.5 font-medium hover:bg-red-200">
+            Dismiss
+          </button>
+        </div>
+      )}
+      {actionSuccess && (
+        <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+          <span>{actionSuccess}</span>
+          <button onClick={() => setActionSuccess("")} className="rounded-lg bg-green-100 px-3 py-1.5 font-medium hover:bg-green-200">
+            Dismiss
+          </button>
+        </div>
+      )}
       <section className="flex flex-wrap items-end gap-4">
         <div>
           <label htmlFor="filter-country" className="block text-xs font-medium text-gray-600">
@@ -552,7 +582,7 @@ export default function SuppliersPage() {
                             </button>
                           </div>
                         ) : (
-                          `$${sup.rate.toFixed(2)}`
+                          `$${(sup.rate ?? 0).toFixed(2)}`
                         )}
                       </td>
                       <td className="px-3 py-2.5">

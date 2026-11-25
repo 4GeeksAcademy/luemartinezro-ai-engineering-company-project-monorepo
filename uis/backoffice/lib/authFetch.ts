@@ -69,20 +69,9 @@ export async function authFetch<T = unknown>(
     return undefined as T;
   }
 
-  // Error response — try to parse detail message
+  // Keep backend/internal details out of client-facing errors.
   if (!res.ok) {
-    let detail = `Request failed: ${res.status} ${res.statusText}`;
-    try {
-      const body = await res.json();
-      if (body.detail) {
-        detail = body.detail;
-      } else if (body.message) {
-        detail = body.message;
-      }
-    } catch {
-      // ignore parse errors
-    }
-    throw new Error(detail);
+    throw new Error("The request could not be completed. Please check your information and try again.");
   }
 
   return res.json() as Promise<T>;

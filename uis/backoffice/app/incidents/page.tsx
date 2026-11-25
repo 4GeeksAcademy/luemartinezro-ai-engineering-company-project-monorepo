@@ -90,6 +90,8 @@ export default function IncidentsPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Reset when file changes
@@ -114,18 +116,16 @@ export default function IncidentsPage() {
       });
 
       if (!res.ok) {
-        const errBody = await res.json().catch(() => null);
-        throw new Error(
-          errBody?.detail ?? `Server error (${res.status})`
-        );
+        setErrorMsg("We couldn’t analyze that file. Check that it is a valid incident CSV and try again.");
+        setPageState("error");
+        return;
       }
 
       const data: AnalysisResult = await res.json();
       setResult(data);
       setPageState("success");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Unknown error";
-      setErrorMsg(msg);
+    } catch {
+      setErrorMsg("We couldn’t connect to the analysis service. Check your connection and try again.");
       setPageState("error");
     }
   }, []);
@@ -156,11 +156,12 @@ export default function IncidentsPage() {
   const onDragLeave = useCallback(() => setDragOver(false), []);
 
   const handleExport = useCallback(async () => {
+    setExporting(true);
+    setExportError(false);
     try {
       const res = await fetch(`${getApiBase()}/api/incidents/results/export`);
       if (!res.ok) {
-        const errBody = await res.json().catch(() => null);
-        throw new Error(errBody?.detail ?? "Export failed");
+        throw new Error("export failed");
       }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -169,9 +170,10 @@ export default function IncidentsPage() {
       a.download = "incident-analysis-export.csv";
       a.click();
       URL.revokeObjectURL(url);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Export failed";
-      setErrorMsg(msg);
+    } catch {
+      setExportError(true);
+    } finally {
+      setExporting(false);
     }
   }, []);
 
@@ -480,11 +482,20 @@ export default function IncidentsPage() {
           <div className="flex justify-end">
             <button
               onClick={handleExport}
+              disabled={exporting}
               className="flex items-center gap-2 rounded-xl bg-[#0069ff] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0031c4]"
             >
-              ⬇️ Download CSV export
+              {exporting ? "Preparing export…" : "⬇️ Download CSV export"}
             </button>
           </div>
+          {exportError && (
+            <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+              <span>We couldn&apos;t prepare the export. Please try again.</span>
+              <button onClick={handleExport} className="rounded-lg bg-red-100 px-3 py-1.5 font-medium hover:bg-red-200">
+                Retry export
+              </button>
+            </div>
+          )}
 
           {/* File info */}
           <p className="text-center text-xs text-gray-400">

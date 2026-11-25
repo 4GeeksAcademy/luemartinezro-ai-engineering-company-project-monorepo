@@ -68,7 +68,13 @@ async def create_supplier(data: SupplierCreate):
     the created supplier with its TinyDB-assigned ID.
     """
     doc = SupplierDocument.from_create(data)
-    doc_id = suppliers_table.insert(doc.model_dump())
+    try:
+        doc_id = suppliers_table.insert(doc.model_dump())
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Could not save the supplier. Please try again.",
+        )
     return _doc_to_response(doc_id, doc.model_dump())
 
 
@@ -103,13 +109,19 @@ async def list_suppliers(
         query_parts.append(SupplierQuery.categories.any([category]))
 
     # Apply filters or return all
-    if query_parts:
-        combined = query_parts[0]
-        for part in query_parts[1:]:
-            combined = combined & part
-        results = suppliers_table.search(combined)
-    else:
-        results = suppliers_table.all()
+    try:
+        if query_parts:
+            combined = query_parts[0]
+            for part in query_parts[1:]:
+                combined = combined & part
+            results = suppliers_table.search(combined)
+        else:
+            results = suppliers_table.all()
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Could not retrieve the supplier list. Please try again.",
+        )
 
     return [_doc_to_response(doc.doc_id, doc) for doc in results]
 
@@ -134,10 +146,16 @@ async def update_supplier_rate(supplier_id: int, data: RateUpdate):
     _, doc = _get_supplier_or_404(supplier_id)
 
     now = datetime.now(timezone.utc).isoformat()
-    suppliers_table.update(
-        {"rate": data.rate, "updated_at": now},
-        doc_ids=[supplier_id],
-    )
+    try:
+        suppliers_table.update(
+            {"rate": data.rate, "updated_at": now},
+            doc_ids=[supplier_id],
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Could not update the supplier rate. Please try again.",
+        )
 
     _, updated_doc = _get_supplier_or_404(supplier_id)
     return _doc_to_response(supplier_id, updated_doc)
@@ -153,10 +171,16 @@ async def update_supplier_status(supplier_id: int, data: StatusUpdate):
     _, doc = _get_supplier_or_404(supplier_id)
 
     now = datetime.now(timezone.utc).isoformat()
-    suppliers_table.update(
-        {"status": data.status.value, "updated_at": now},
-        doc_ids=[supplier_id],
-    )
+    try:
+        suppliers_table.update(
+            {"status": data.status.value, "updated_at": now},
+            doc_ids=[supplier_id],
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Could not update the supplier status. Please try again.",
+        )
 
     _, updated_doc = _get_supplier_or_404(supplier_id)
     return _doc_to_response(supplier_id, updated_doc)
@@ -172,5 +196,11 @@ async def delete_supplier(supplier_id: int):
     # Verify exists
     _get_supplier_or_404(supplier_id)
 
-    suppliers_table.remove(doc_ids=[supplier_id])
+    try:
+        suppliers_table.remove(doc_ids=[supplier_id])
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Could not remove the supplier. Please try again.",
+        )
     return None

@@ -390,8 +390,12 @@ def load_and_validate(filepath: str) -> tuple[list[list[str]], list[tuple[list[s
     (see ``_parse_rows``) and maps columns by header name, so column
     order or extra leading columns do not break validation.
     """
-    with open(filepath, "r", encoding="utf-8-sig") as f:
-        text = f.read()
+    try:
+        with open(filepath, "r", encoding="utf-8-sig") as f:
+            text = f.read()
+    except (OSError, UnicodeError) as exc:
+        # Keep OS paths and low-level decoding details out of API responses.
+        raise ValueError("Could not read the uploaded CSV file.") from exc
 
     try:
         rows = _parse_rows(text)

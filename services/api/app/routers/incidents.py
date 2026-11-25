@@ -76,15 +76,21 @@ async def analyze_incidents(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="File must be a CSV.")
 
     # Read uploaded content
-    content = await file.read()
+    try:
+        content = await file.read()
+    except OSError as exc:
+        raise HTTPException(status_code=400, detail="Could not read the uploaded file.") from exc
     if not content or len(content.strip()) == 0:
         raise HTTPException(status_code=400, detail="File is empty.")
 
     # Write to a temporary file for the analyzer
     suffix = os.path.splitext(file.filename)[1] or ".csv"
-    with tempfile.NamedTemporaryFile(mode="wb", suffix=suffix, delete=False) as tmp:
-        tmp.write(content)
-        tmp_path = tmp.name
+    try:
+        with tempfile.NamedTemporaryFile(mode="wb", suffix=suffix, delete=False) as tmp:
+            tmp.write(content)
+            tmp_path = tmp.name
+    except OSError as exc:
+        raise HTTPException(status_code=500, detail="The file could not be prepared for analysis.") from exc
 
     try:
         valid_records, invalid_records, rule_counts = load_and_validate(tmp_path)
@@ -94,11 +100,20 @@ async def analyze_incidents(file: UploadFile = File(...)):
         )
         _last_result = result
         return _build_response(result)
-    except ValueError as exc:
+    except ValueError:
         # Unparseable / wrong-format file → descriptive 400, not a 500.
-        raise HTTPException(status_code=400, detail=str(exc))
+        # Use a generic message instead of forwarding the ValueError text,
+        # which may contain filepath or format details.
+        raise HTTPException(
+            status_code=400,
+            detail="The file could not be parsed. Check that it is a valid CSV with the expected columns and try again.",
+        )
     finally:
-        os.unlink(tmp_path)
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            # Temporary-file cleanup must not replace the original response/error.
+            pass
 
 
 @router.get("/results/export")
