@@ -32,8 +32,7 @@ export default function RegisterPage() {
         body: JSON.stringify({ email, password, name, phone, address }),
       });
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        setError(data.detail ?? "Unable to create account. Please check your details and try again.");
+        setError("We couldn’t create your account. Check your details and try again, or contact support if the problem continues.");
         return;
       }
       router.push("/auth/login?registered=success");

@@ -87,52 +87,20 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
 // ── Component ──────────────────────────────────────────────────────────────
 
 export default function IncidentsPage() {
-  // ── List state ──
-  const [listState, setListState] = useState<ListState>("loading");
-  const [incidents, setIncidents] = useState<Incident[]>([]);
-  const [listError, setListError] = useState("");
+  const [pageState, setPageState] = useState<PageState>("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // ── Filters ──
-  const [filterStatus, setFilterStatus] = useState("");
-  const [filterOrigin, setFilterOrigin] = useState("");
-  const [filterBranch, setFilterBranch] = useState("");
-  const [filterCategory, setFilterCategory] = useState("");
-
-  // ── Status update tracking ──
-  const [statusUpdating, setStatusUpdating] = useState<Record<string, boolean>>({});
-
-  // ── Summary state ──
-  const [summaryState, setSummaryState] = useState<SummaryState>("loading");
-  const [summary, setSummary] = useState<SummaryData | null>(null);
-  const [summaryError, setSummaryError] = useState("");
-
-  // ── Fetch incidents ──────────────────────────────────────────────────────
-
-  const fetchIncidents = useCallback(async () => {
-    setListState("loading");
-    setListError("");
-
-    try {
-      const base = getApiBase();
-      const params = new URLSearchParams();
-      if (filterStatus) params.set("status", filterStatus);
-      if (filterOrigin) params.set("origin", filterOrigin);
-      if (filterBranch) params.set("branch", filterBranch);
-      if (filterCategory) params.set("category", filterCategory);
-
-      const qs = params.toString();
-      const url = `${base}/api/incidents${qs ? "?" + qs : ""}`;
-      const res = await fetch(url);
-
-      if (!res.ok) throw new Error(`Server error (${res.status})`);
-
-      const data: Incident[] = await res.json();
-      setIncidents(data);
-      setListState("ready");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to load incidents";
-      setListError(msg);
-      setListState("error");
+  // Reset when file changes
+  const handleUpload = useCallback(async (file: File) => {
+    if (!file.name.endsWith(".csv")) {
+      setErrorMsg("Please select a .csv file.");
+      setPageState("error");
+      return;
     }
   }, [filterStatus, filterOrigin, filterBranch, filterCategory]);
 
@@ -143,18 +111,23 @@ export default function IncidentsPage() {
     setSummaryError("");
 
     try {
-      const base = getApiBase();
-      const res = await fetch(`${base}/api/incidents/summary`);
+      const res = await fetch(`${getApiBase()}/api/incidents/analyze`, {
+        method: "POST",
+        body: formData,
+      });
 
-      if (!res.ok) throw new Error(`Server error (${res.status})`);
+      if (!res.ok) {
+        setErrorMsg("We couldn’t analyze that file. Check that it is a valid incident CSV and try again.");
+        setPageState("error");
+        return;
+      }
 
-      const data: SummaryData = await res.json();
-      setSummary(data);
-      setSummaryState("ready");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to load summary";
-      setSummaryError(msg);
-      setSummaryState("error");
+      const data: AnalysisResult = await res.json();
+      setResult(data);
+      setPageState("success");
+    } catch {
+      setErrorMsg("We couldn’t connect to the analysis service. Check your connection and try again.");
+      setPageState("error");
     }
   }, []);
 
@@ -170,53 +143,27 @@ export default function IncidentsPage() {
   const handleRetryList = useCallback(() => fetchIncidents(), [fetchIncidents]);
   const handleRetrySummary = useCallback(() => fetchSummary(), [fetchSummary]);
 
-  // ── Status update ────────────────────────────────────────────────────────
-
-  const handleStatusUpdate = useCallback(
-    async (incidentId: string, newStatus: string) => {
-      setStatusUpdating((prev) => ({ ...prev, [incidentId]: true }));
-
-      try {
-        const base = getApiBase();
-        const res = await fetch(`${base}/api/incidents/${incidentId}/status`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: newStatus }),
-        });
-
-        if (!res.ok) throw new Error(`Server error (${res.status})`);
-
-        // Update the local incident list with the new status
-        const updated: Incident = await res.json();
-        setIncidents((prev) =>
-          prev.map((inc) => (inc.id === incidentId ? updated : inc))
-        );
-
-        // Refresh summary
-        fetchSummary();
-      } catch {
-        // Revert the visual state on error and notify
-        setIncidents((prev) => [...prev]); // triggers re-render
-        alert("Failed to update status. The change has been reverted.");
-      } finally {
-        setStatusUpdating((prev) => {
-          const next = { ...prev };
-          delete next[incidentId];
-          return next;
-        });
+  const handleExport = useCallback(async () => {
+    setExporting(true);
+    setExportError(false);
+    try {
+      const res = await fetch(`${getApiBase()}/api/incidents/results/export`);
+      if (!res.ok) {
+        throw new Error("export failed");
       }
-    },
-    [fetchSummary]
-  );
-
-  // ── Filter change handler ────────────────────────────────────────────────
-
-  const updateFilter = useCallback(
-    (setter: (v: string) => void, value: string) => {
-      setter(value);
-    },
-    []
-  );
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "incident-analysis-export.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setExportError(true);
+    } finally {
+      setExporting(false);
+    }
+  }, []);
 
   // ── Render ───────────────────────────────────────────────────────────────
 
@@ -473,28 +420,21 @@ export default function IncidentsPage() {
               </div>
             </div>
             <button
-              onClick={handleRetryList}
-              className="mt-3 rounded-lg bg-red-100 px-4 py-1.5 text-xs font-medium text-red-800 transition hover:bg-red-200"
+              onClick={handleExport}
+              disabled={exporting}
+              className="flex items-center gap-2 rounded-xl bg-[#0069ff] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0031c4]"
             >
-              Retry
+              {exporting ? "Preparing export…" : "⬇️ Download CSV export"}
             </button>
           </div>
-        )}
-
-        {/* Empty state */}
-        {listState === "ready" && incidents.length === 0 && (
-          <div className="mt-6 flex flex-col items-center py-12">
-            <span className="text-4xl">📭</span>
-            <p className="mt-3 text-sm font-medium text-gray-600">
-              No incidents to show
-            </p>
-            <p className="mt-1 text-xs text-gray-400">
-              {filterStatus || filterOrigin || filterBranch || filterCategory
-                ? "No incidents match the current filters. Try adjusting your filters."
-                : "There are no registered incidents yet. Create one using the form."}
-            </p>
-          </div>
-        )}
+          {exportError && (
+            <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+              <span>We couldn&apos;t prepare the export. Please try again.</span>
+              <button onClick={handleExport} className="rounded-lg bg-red-100 px-3 py-1.5 font-medium hover:bg-red-200">
+                Retry export
+              </button>
+            </div>
+          )}
 
         {/* Table */}
         {listState === "ready" && incidents.length > 0 && (

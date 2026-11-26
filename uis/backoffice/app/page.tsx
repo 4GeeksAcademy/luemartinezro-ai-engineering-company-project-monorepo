@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { getWebsiteBase } from "@/lib/website";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function HomePage() {
   const { user } = useAuth();
