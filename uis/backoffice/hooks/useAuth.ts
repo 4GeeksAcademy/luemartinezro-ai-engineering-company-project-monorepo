@@ -10,7 +10,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authFetch } from "@/lib/authFetch";
-import { getToken, setToken, removeToken, isAuthenticated } from "@/lib/auth";
+import { getAuthToken, setAuthToken, clearAuthToken } from "@/lib/auth";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -63,7 +63,7 @@ export function useAuth() {
    * Fetch the current user from GET /auth/me (only if token exists).
    */
   const fetchUser = useCallback(async () => {
-    if (!isAuthenticated()) {
+    if (!getAuthToken()) {
       setState({ user: null, loading: false, error: null });
       return;
     }
@@ -73,7 +73,7 @@ export function useAuth() {
       setState({ user, loading: false, error: null });
     } catch {
       // Token invalid or expired — clear it
-      removeToken();
+      clearAuthToken();
       setState({ user: null, loading: false, error: null });
     }
   }, []);
@@ -101,7 +101,7 @@ export function useAuth() {
             noAuth: true,
           },
         );
-        setToken(data.access_token);
+        setAuthToken(data.access_token);
         await fetchUser();
         return true;
       } catch {
@@ -147,7 +147,7 @@ export function useAuth() {
           },
         );
 
-        setToken(data.access_token);
+        setAuthToken(data.access_token);
         await fetchUser();
         return true;
       } catch {
@@ -162,7 +162,7 @@ export function useAuth() {
    * Logout: remove token → redirect to /login.
    */
   const logout = useCallback(() => {
-    removeToken();
+    clearAuthToken();
     setState({ user: null, loading: false, error: null });
     router.push("/login");
   }, [router]);
@@ -171,7 +171,7 @@ export function useAuth() {
     user: state.user,
     loading: state.loading,
     error: state.error,
-    isAuthenticated: isAuthenticated(),
+    isAuthenticated: !!getAuthToken(),
     login,
     register,
     logout,

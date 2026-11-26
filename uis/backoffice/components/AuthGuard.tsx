@@ -10,7 +10,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { isAuthenticated } from "@/lib/auth";
+import { getAuthToken } from "@/lib/auth";
 import { useAuth } from "@/hooks/useAuth";
 
 interface AuthGuardProps {
@@ -27,7 +27,7 @@ export default function AuthGuard({
   const { loading } = useAuth();
 
   useEffect(() => {
-    if (!isAuthenticated()) {
+    if (!getAuthToken()) {
       const currentPath = window.location.pathname + window.location.search;
       const redirect = encodeURIComponent(currentPath);
       router.push(`/login?redirect=${redirect}`);
@@ -35,7 +35,7 @@ export default function AuthGuard({
   }, [router]);
 
   // If no token at all, don't render anything (redirect is happening)
-  if (!isAuthenticated()) {
+  if (!getAuthToken()) {
     return null;
   }
 

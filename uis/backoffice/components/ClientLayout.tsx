@@ -9,7 +9,7 @@
 import { usePathname } from "next/navigation";
 import AuthGuard from "./AuthGuard";
 
-const PUBLIC_PATHS = ["/login", "/register"];
+const PUBLIC_PATHS = ["/auth/login", "/auth/register", "/login", "/register"];
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

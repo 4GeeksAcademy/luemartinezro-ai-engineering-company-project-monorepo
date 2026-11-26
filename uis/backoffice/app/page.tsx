@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { getWebsiteBase } from "@/lib/website";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -12,7 +13,7 @@ export default function HomePage() {
     setWebsiteUrl(getWebsiteBase());
   }, []);
 
-  const displayName = user?.profile?.name || user?.email || "User";
+  const displayName = user?.profile?.name || user?.email || "Guest";
 
   const publicLink = (path: string) => websiteUrl ? `${websiteUrl}${path}` : undefined;
 

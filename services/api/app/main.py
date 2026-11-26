@@ -1,12 +1,13 @@
 """
 HealthCore Central API — Main application.
 
-FastAPI entry point with CORS, routers, and health check.
-Now with authentication, users, and profiles modules.
+FastAPI entry point with CORS, routers, exception handlers, and health check.
+Now with authentication, users, profiles, and incident management modules.
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import uvicorn
 
 from app.core.settings import settings
@@ -16,6 +17,7 @@ from app.modules.profiles.router import router as profiles_router
 from app.modules.users.router import router as users_router
 from app.models.schemas import HealthResponse
 from app.routers import clinics, departments, incidents, suppliers
+from app.routers.incident_manager import router as incident_manager_router
 
 # ── Ensure the TinyDB data directory exists before any request ──
 init_db()
@@ -38,6 +40,18 @@ app.add_middleware(
 )
 
 
+# ── Global exception handler ──
+# Never exposes stack traces to the client — always returns a generic 500.
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Catch all unhandled exceptions and return a generic 500 response."""
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error. Please try again later."},
+    )
+
+
 # ── Health check (public) ──
 
 @app.get("/health", response_model=HealthResponse, tags=["system"])
@@ -48,6 +62,7 @@ async def health_check():
 
 # ── Routers ──
 
+app.include_router(incident_manager_router)
 app.include_router(clinics.router)
 app.include_router(departments.router)
 app.include_router(auth_router)
