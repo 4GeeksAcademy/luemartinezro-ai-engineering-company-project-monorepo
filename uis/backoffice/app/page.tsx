@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { getWebsiteBase } from "@/lib/website";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function HomePage() {
+  const { user } = useAuth();
   const [websiteUrl, setWebsiteUrl] = useState("");
 
   useEffect(() => {
     setWebsiteUrl(getWebsiteBase());
   }, []);
+
+  const displayName = user?.profile?.name || user?.email || "User";
 
   const publicLink = (path: string) => websiteUrl ? `${websiteUrl}${path}` : undefined;
 

@@ -104,9 +104,8 @@ export function useAuth() {
         setToken(data.access_token);
         await fetchUser();
         return true;
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Login failed";
-        setState((prev) => ({ ...prev, loading: false, error: message }));
+      } catch {
+        setState((prev) => ({ ...prev, loading: false, error: "We couldn’t sign you in. Check your email and password, then try again." }));
         return false;
       }
     },
@@ -151,9 +150,8 @@ export function useAuth() {
         setToken(data.access_token);
         await fetchUser();
         return true;
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Registration failed";
-        setState((prev) => ({ ...prev, loading: false, error: message }));
+      } catch {
+        setState((prev) => ({ ...prev, loading: false, error: "We couldn’t create your account. Check your details and try again." }));
         return false;
       }
     },

@@ -44,8 +44,7 @@ function ResetPasswordForm() {
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.detail ?? "Invalid or expired reset link. Please request a new one.");
+        setError("This reset link may be invalid or expired. Request a new link and try again.");
         return;
       }
 

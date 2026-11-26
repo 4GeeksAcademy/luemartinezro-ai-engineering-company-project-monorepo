@@ -30,8 +30,7 @@ def send_password_reset_email(to_email: str, reset_link: str) -> bool:
     """
     api_key = settings.RESEND_API_KEY
     if not api_key:
-        logger.warning("RESEND_API_KEY is not set — skipping email to %s", to_email)
-        logger.info("Simulated email to %s: %s", to_email, reset_link)
+        logger.warning("Password reset email delivery is not configured; email was not sent.")
         return False
 
     try:
@@ -87,9 +86,10 @@ def send_password_reset_email(to_email: str, reset_link: str) -> bool:
         }
 
         response = resend.Emails.send(params)
-        logger.info("Password reset email sent to %s — response: %s", to_email, response)
+        logger.info("Password reset email provider accepted the message.")
         return True
 
-    except Exception as exc:
-        logger.error("Failed to send password reset email to %s: %s", to_email, exc)
+    except Exception:
+        # Provider exceptions can contain request metadata, recipient addresses, or secrets.
+        logger.error("Password reset email delivery failed.")
         return False

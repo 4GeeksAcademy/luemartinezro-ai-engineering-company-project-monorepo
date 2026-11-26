@@ -158,7 +158,7 @@ def export_csv(result: dict, filepath: str = DEFAULT_OUTPUT) -> None:
             cnt = result["satisfaction_distribution"].get(score, 0)
             writer.writerow([f"satisfaction_score_{score}", str(cnt), ""])
 
-    print(f"  Results exported to {filepath}")
+    print(f"  Results exported to {os.path.basename(filepath)}")
 
 
 # ── Main ───────────────────────────────────────────────────────────────────
@@ -171,17 +171,24 @@ def main():
     filepath = sys.argv[1] if len(sys.argv) == 2 else DEFAULT_INPUT
 
     if not os.path.isfile(filepath):
-        print(f"ERROR: File not found: {filepath}")
+        print("ERROR: Input file was not found. Check the path and try again.", file=sys.stderr)
         sys.exit(1)
 
-    if os.path.getsize(filepath) == 0:
-        print(f"ERROR: File is empty: {filepath}")
+    try:
+        if os.path.getsize(filepath) == 0:
+            print("ERROR: Input file is empty.", file=sys.stderr)
+            sys.exit(1)
+    except OSError:
+        print("ERROR: Could not access the input file.", file=sys.stderr)
         sys.exit(1)
 
     try:
         result = analyze(filepath)
     except ValueError as exc:
-        print(f"ERROR: {exc}")
+        print(f"ERROR: {exc}", file=sys.stderr)
+        sys.exit(1)
+    except OSError:
+        print("ERROR: Could not read the input file.", file=sys.stderr)
         sys.exit(1)
 
     print_report(result)
@@ -193,7 +200,11 @@ def main():
         answer = "n"
 
     if answer == "y":
-        export_csv(result)
+        try:
+            export_csv(result)
+        except (OSError, csv.Error):
+            print("ERROR: Could not export the results file.", file=sys.stderr)
+            sys.exit(1)
     else:
         print("  Export skipped.")
 

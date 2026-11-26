@@ -30,8 +30,7 @@ function LoginForm() {
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.detail ?? "Invalid email or password.");
+        setError("We couldn’t sign you in. Check your email and password, then try again.");
         return;
       }
 

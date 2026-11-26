@@ -118,22 +118,30 @@ INITIAL_SUPPLIERS: list[dict] = [
 
 def main() -> None:
     """Run the seeder: load initial suppliers if the database is empty."""
-    if not is_empty():
-        print(f"Database already contains {len(suppliers_table)} suppliers. Skipping seed.")
-        return
+    try:
+        if not is_empty():
+            print(f"Database already contains {len(suppliers_table)} suppliers. Skipping seed.")
+            return
+    except Exception:
+        print("ERROR: Could not read the supplier database.", file=sys.stderr)
+        raise SystemExit(1)
 
     inserted = 0
     for data in INITIAL_SUPPLIERS:
         # Build a SupplierCreate to validate the data
         try:
             create = SupplierCreate(**data)
-        except Exception as e:
-            print(f"  ⚠ Skipping '{data['name']}': validation error — {e}")
+        except (ValueError, TypeError) as exc:
+            print(f"  WARNING: Skipping supplier with invalid seed data ({type(exc).__name__}).", file=sys.stderr)
             continue
 
         # Convert to document and insert
         doc = SupplierDocument.from_create(create)
-        doc_id = suppliers_table.insert(doc.model_dump())
+        try:
+            doc_id = suppliers_table.insert(doc.model_dump())
+        except Exception:
+            print("ERROR: Could not write supplier data to the database.", file=sys.stderr)
+            raise SystemExit(1)
         inserted += 1
         print(f"  ✓ Inserted '{doc.name}' (ID: {doc_id})")
 

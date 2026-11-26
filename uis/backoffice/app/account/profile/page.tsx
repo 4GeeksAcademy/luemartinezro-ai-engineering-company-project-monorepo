@@ -23,7 +23,7 @@ interface ProfileData {
 // ── Component ──────────────────────────────────────────────────────────────
 
 function ProfileContent() {
-  const { user, loading, error } = useAuth();
+  const { user, loading, error, fetchUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<ProfileData>({
     name: "",
@@ -63,8 +63,8 @@ function ProfileContent() {
       setIsEditing(false);
       // Refresh user data
       setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Failed to save profile");
+    } catch {
+      setSaveError("We couldn’t save your profile. Check your connection and try again.");
     } finally {
       setSaving(false);
     }
@@ -100,7 +100,12 @@ function ProfileContent() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="rounded-lg border border-red-200 bg-red-50 px-6 py-4 text-sm text-red-700">
-          {error}
+          <div className="text-center">
+            <p>We couldn’t load your profile. Please try again.</p>
+            <button onClick={fetchUser} className="mt-3 rounded-lg bg-red-100 px-4 py-2 font-medium hover:bg-red-200">
+              Retry
+            </button>
+          </div>
         </div>
       </div>
     );
